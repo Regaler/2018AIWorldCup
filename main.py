@@ -11,7 +11,7 @@ import argparse
 import random
 
 from data_processor import *
-from strategy import *
+from strategy_v1 import *
 import math
 
 #reset_reason
