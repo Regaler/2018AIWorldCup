@@ -1,7 +1,14 @@
 import pickle
 import numpy as np
+import sys
 
-with open('./label0.pkl','rb') as f:
+filename = sys.argv[1]
+
+if 'label' not in filename:
+	print("Error: you should input a label file.")
+	exit()
+
+with open(filename,'rb') as f:
     mydata = pickle.load(f)
 
 #print(mydata)

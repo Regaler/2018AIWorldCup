@@ -11,6 +11,8 @@ ROBOT_SIZE = 0.075
 AXLE_LENGTH = 0.07
 WHEEL_RADIUS = 0.03
 
+ATTACK_MARGIN = 0.8
+DEFENSE_MARGIN = 0.1
 
 class Data_processor(object):
     def __init__(self, is_debug=False):
@@ -51,6 +53,8 @@ class Data_processor(object):
 
     def get_cur_ball_transition(self):
         if self.cur_frame is None:
+            transition = [0, 0]
+        elif self.prev_frame is None:
             transition = [0, 0]
         else:
             cur_ball = self.get_ball_position(self.cur_frame)
