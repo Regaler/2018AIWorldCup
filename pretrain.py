@@ -100,5 +100,5 @@ if __name__ == '__main__':
 			print("pred: " + str(Y_pred))
 
 		# Save weights
-		if epoch % 1 == 0 and epoch > 1:
+		if epoch % 1000 == 0 and epoch > 1:
 			model.save_weights(save_file, overwrite=True)
