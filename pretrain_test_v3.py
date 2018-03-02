@@ -30,6 +30,10 @@ import keras
 import numpy as np
 import sys
 
+"""
+$python3 pretrain_test_v3.py --train 0
+"""
+
 # Neural network
 def buildmodel():
 	model = Sequential()
@@ -48,26 +52,21 @@ if __name__ == 	"__main__":
 	
 	#Convert image into Black and white
 	if flag == "--train":
-		STATE = './data/COORDINATION' + num_flag + '.pkl'
-		LABEL0 = './data/label' + num_flag + '_trimed.pkl'
+		STATE = './data/train/COORDINATION' + num_flag + '.pkl'
+		LABEL = './data/train/label' + num_flag + '.pkl'
 	elif flag == "--test":
-		STATE = './data/COORDINATION' + num_flag + '_test.pkl'
-		LABEL0 = './data/label' + num_flag + '_test_trimed.pkl'
+		STATE = './data/test/COORDINATION' + num_flag + '.pkl'
+		LABEL = './data/test/label' + num_flag + '.pkl'
 	else:
 		print("Error: No such flag. You can only input --train or --test")
 
-	num = int(num_flag)
-	if num == 0:
-		print("0000000000000000000")
+	if num_flag == '0':
 		label_size = 12
-	elif num == 1:
-		print("1111111111111111111111111")
+	elif num_flag == '1':
 		label_size = 14
-	elif num == 2:
-		print("22222222222222")
+	elif num_flag == '2':
 		label_size = 13
-	elif num == 3:
-		print("33333333333333")
+	elif num_flag == '3':
 		label_size = 17
 	else:
 		print("Error: No such robot. You should give 0, 1, 2, or 3")
@@ -86,7 +85,7 @@ if __name__ == 	"__main__":
 	model.load_weights("./save/weights_FC" + num_flag + ".h5")
 
 	# <2> Restore data and label
-	with open(STATE,'rb') as f, open(LABEL0,'rb') as g:
+	with open(STATE,'rb') as f, open(LABEL,'rb') as g:
 		states = pickle.load(f)
 		labels = pickle.load(g)
 	states = states[2:]
@@ -100,7 +99,7 @@ if __name__ == 	"__main__":
 		cnt_batch = 0
 		X = np.zeros((batch_size,state_size))
 		Y = np.zeros((batch_size,label_size))
-		print(epoch)
+		#print(epoch)
 
 		# Make batch of size 32
 		for cnt_batch in range(batch_size):
@@ -112,9 +111,9 @@ if __name__ == 	"__main__":
 		Y_predict = model.predict(X)
 		loss_temp = ((Y_predict - Y) ** 2).mean()
 		loss += loss_temp
-		print("true: " + str(Y))
-		print("pred: " + str(Y_predict))
-		print("loss :" + str(loss_temp))
+		#print("true: " + str(Y))
+		#print("pred: " + str(Y_predict))
+		#print("loss :" + str(loss_temp))
 
 		for i in range(32):
 			if np.argmax(Y[i])==np.argmax(Y_predict[i]):
@@ -122,26 +121,14 @@ if __name__ == 	"__main__":
 			cnt_total+=1
 
 		# Write the result to file
-		with open("./data/test_result_sub.txt",'a') as ff:
+		with open("./data/test_result.txt",'a') as ff:
 			ff.write("**************************\n")
 			for j in range(32):
 				ff.write("action number: " + str(np.argmax(Y[j])) + ", predicted action number: " + str(np.argmax(Y_predict[j])) +"\n")
 			ff.write("Prediction success ratio: " + str(cnt/cnt_total) + "\n")
 		prediction_success_ratio += cnt/cnt_total
 
-
-		with open("./data/test_result.txt",'a') as f:
-			f.write("**************************\n")
-			f.write(str(epoch) + " -th epoch\n")
-			f.write("**************************\n")
-			f.write("true\n")
-			f.write(str(Y))
-			f.write("\npred\n")
-			f.write(str(Y_predict))
-			f.write("\n loss \n")
-			f.write(str(loss_temp))
-
 	loss /= 100
-	print("average loss : " + str(loss))
+	print("\naverage loss : " + str(loss))
 	prediction_success_ratio /= 100
-	print("average prediction_success_ratio : " + str(prediction_success_ratio))
+	print("average prediction_success_ratio : " + str(prediction_success_ratio) + "\n")

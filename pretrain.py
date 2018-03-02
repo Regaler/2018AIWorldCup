@@ -28,6 +28,10 @@ from keras import regularizers
 import keras
 import numpy as np
 
+"""
+$python3 pretrain.py 0
+"""
+
 def buildmodel():
 	model = Sequential()
 	model.add(Dense(64, input_dim = state_size, activation = 'relu'))
