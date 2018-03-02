@@ -383,20 +383,21 @@ class Component(ApplicationSession):
         self.end_of_frame = False
         self._frame = 0
 
-        self.memory0 = deque(maxlen=2000) # Replay Memory D
-        self.memory1 = deque(maxlen=2000)
-        self.memory2 = deque(maxlen=2000)
-        self.memory3 = deque(maxlen=2000)
+        self.memory0 = deque(maxlen=5000) # Replay Memory D
+        self.memory1 = deque(maxlen=5000)
+        self.memory2 = deque(maxlen=5000)
+        self.memory3 = deque(maxlen=5000)
 
         self.epsilon = 0.5
         self.final_epsilon = 0.01 # Final epsilon value
-        self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
+        self.dec_epsilon = 0.005 # Decrease rate of epsilon for every generation
         self.gamma = 0.99 # 0.99
         self.batch_size = 32
         self.learning_rate = 1e-5
 
-        self.replay_cnt = 0
         self.cnt = 0
+        self.replay_cnt = 0
+        self.frame_valid_cnt = 0
         self.state_size = 47
         self.model0 = self.build_model(0)
         self.model0.load_weights("./save/weights_FC0.h5")
@@ -406,11 +407,6 @@ class Component(ApplicationSession):
         self.model2.load_weights("./save/weights_FC2.h5")
         self.model3 = self.build_model(3)
         self.model3.load_weights("./save/weights_FC3.h5")
-
-        self.target_model0 = self.build_model(0)
-        self.target_model1 = self.build_model(1)
-        self.target_model2 = self.build_model(2)
-        self.target_model3 = self.build_model(3)
 
         self.done = False
         self.losscounter = 0
@@ -426,13 +422,13 @@ class Component(ApplicationSession):
     """Some methods"""
     def id2info(self, id):
         if id == 0:
-            return 12, self.memory0, self.model0, self.target_model0
+            return 12, self.memory0, self.model0
         elif id == 1:
-            return 14, self.memory1, self.model1, self.target_model1
+            return 14, self.memory1, self.model1
         elif id == 2:
-            return 13, self.memory2, self.model2, self.target_model2
+            return 13, self.memory2, self.model2
         elif id == 3:
-            return 17, self.memory3, self.model3, self.target_model3
+            return 17, self.memory3, self.model3
         else:
             assert(False), "id2info: No such id"
 
@@ -457,15 +453,15 @@ class Component(ApplicationSession):
         return model
 
     def update_target_model(self, id):
-        label_size, memory, model, target_model = self.id2info(id)
-        target_model.set_weights(model.get_weights())
+        label_size, memory, model = self.id2info(id)
+        self.target_model.set_weights(model.get_weights())
 
     def remember(self, id, state_action_reward_triplet):
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
         memory.append((state_action_reward_triplet[0], state_action_reward_triplet[1], state_action_reward_triplet[2]))
 
     def act(self, id, state):
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
         if np.random.rand() <= self.epsilon:
             return random.randrange(label_size)
         else:
@@ -476,7 +472,7 @@ class Component(ApplicationSession):
 
     def replay(self, id,  batch_size):
         printWrapper("entered replay")
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
         # make batch
         for i in range(batch_size-1):
             index = np.random.randint(len(memory)-1)
@@ -485,22 +481,25 @@ class Component(ApplicationSession):
             reward = memory[index][2]
             next_state = memory[index+1][0]
             # size cast
-            target = model.predict(state)
+
             if self.done:
                 target[0][action] = reward
-            else:
+            else:self.update_target_model(0)
+                self.update_target_model(1)
+                self.update_target_model(2)
+                self.update_target_model(3)
                 a = model.predict(next_state)[0]
-                t = target_model.predict(next_state)[0]
+                t = self.target_model(id).predict(next_state)[0]
                 target[0][action] = reward + self.gamma * t[np.argmax(a)] 
             #target = reward + self.gamma * np.amax(model.predict(next_state)[0])
             model.fit(state, target, epochs=1, verbose=0)
         
         self.epsilon = max(self.epsilon - self.dec_epsilon, self.final_epsilon)
         printWrapper("Exit replay")
-        
+
 
     def write_loss(self, id, batch_size):
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
 
         state_set = np.zeros((batch_size, self.state_size))
         target_f_set = np.zeros((batch_size, label_size))
@@ -528,11 +527,11 @@ class Component(ApplicationSession):
             hh.write(str(np.max(Y_pred[0])) + "\n")
 
     def load(self, id, name):
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
         model.load_weights(name)
 
     def save(self, id, name):
-        label_size, memory, model, target_model = self.id2info(id)
+        label_size, memory, model = self.id2info(id)
         model.save_weights(name)
 
     @inlineCallbacks
@@ -571,9 +570,6 @@ class Component(ApplicationSession):
 
             self.prev_our_postures = np.array([])
             self.prev_action0 = 0
-            self.prev_action1 = 0
-            self.prev_action2 = 0
-            self.prev_action3 = 0
             self.frame_error_valid = []
 
             #self.our_posture = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
@@ -682,19 +678,18 @@ class Component(ApplicationSession):
 
             # do some processing with data_proc
             wheels, actions = self.strategy.perform()
-
-            wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
-            wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
-            wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
-            wheels[6], wheels[7] = ActionNumInterpreter(3, self.strategy, act_values3)
-
-            if (actions[4] == 4) or (actions[4] == 1):
+            if (actions[4] == 4) or (actions[4] == 2):
                 self.frame_error_valid.append(1)
                 if len(self.frame_error_valid)>20:
                     with open("frame_error.txt",'a') as tt:
                         tt.write("frame error occured\n")
             else:
                 self.frame_error_valid = []
+            wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
+            wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
+            wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
+            wheels[6], wheels[7] = ActionNumInterpreter(3, self.strategy, act_values3)
+
             set_wheel(self, wheels)
 
             # <DQL4> Remember (prev_state, prev_action, cur_reward): cur_reward == +1 only if done==GOAL, cur_reward == -1 only if done==LOSE, 
@@ -765,7 +760,7 @@ class Component(ApplicationSession):
                         self.replay(3, self.batch_size)
                     else:
                         printWrapper("something wrong in replay")
-                    self.replay_cnt += 1                    
+                    self.replay_cnt += 1
                 printWrapper("New Episode! New Epsilon: " + str(self.epsilon))
             else:
                 self.cnt += 1

@@ -17,7 +17,7 @@ def printWrapper(msg):
 
 class Strategy(object):
     def __init__(self, data_proc, is_debug=False, memory = []):
-        self.cur_actions = [0,0,0,0]
+        self.cur_actions = [0,0,0,0,0]
         self.is_debug = is_debug
         if self.is_debug:
             print('Strategy contructed')
@@ -46,7 +46,7 @@ class Strategy(object):
         robot_wheels[self.lower_attacker*2:self.lower_attacker*2+2],self.cur_actions[0] = self.attack(self.lower_attacker)
         robot_wheels[self.upper_defender*2:self.upper_defender*2+2],self.cur_actions[3] = self.defense(self.upper_defender)
         robot_wheels[self.lower_defender*2:self.lower_defender*2+2],self.cur_actions[2] = self.defense(self.lower_defender)
-        robot_wheels[self.goal_keeper*2:self.goal_keeper*2+2] = self.keep_goal(self.goal_keeper)
+        robot_wheels[self.goal_keeper*2:self.goal_keeper*2+2], self.cur_actions[4] = self.keep_goal(self.goal_keeper)
         return robot_wheels, self.cur_actions
 
 #*****************************************************************************************************************************************#
@@ -626,31 +626,40 @@ class Strategy(object):
         if (target[0] < wait_x+0.05 and target[1]<GOAL_WIDTH+0.2 and target[1]>-GOAL_WIDTH-0.2): 
             if (target[0] < wait_x+0.03 and target[1]<GOAL_WIDTH+0.05 and target[1]>-GOAL_WIDTH-0.05):
                 wheel_velos = self.motors[id].move_to_target(my_posture, [wait_x, wait_y], damping=0)
+                self.cur_actions[id] = 0
             # contact with ball at wall
             elif(dist_to_ball <= 0.2): 
                 if (x<=bx): # inner side than ball 
                     if (bx<=wait_x+0.07 and by>=GOAL_WIDTH-0.1): # up coming
                         if (y>=GOAL_WIDTH-0.1) and (th>=self.cal.d2r(90) and th<=self.cal.d2r(100)): # position and angle is good: PUSH!!
                             wheel_velos = self.motors[id].move_to_target(my_posture, [min(wait_x,bx),by], damping=0)
+                            self.cur_actions[id] = 3
                         elif (y>=GOAL_WIDTH-0.1): #position is good, but angle is bad: TURN!!
                             wheel_velos = self.motors[id].spin_to_theta(th, self.cal.d2r(90))
+                            self.cur_actions[id] = 1
                         else: # position is bad
                             wheel_velos = self.motors[id].move_to_target(my_posture, [min(wait_x,bx),GOAL_WIDTH-0.1], damping=0)
+                            self.cur_actions[id] = 2
                     elif (bx<=wait_x+0.07 and by<=-GOAL_WIDTH+0.1): # down coming
                         if (y<=-GOAL_WIDTH+0.1) and (th<=self.cal.d2r(-90) and th>=self.cal.d2r(-100)): # position and angle is good: PUSH!!
                             wheel_velos = self.motors[id].move_to_target(my_posture, [min(wait_x,bx),by], damping=0)
+                            self.cur_actions[id] = 3
                         elif (y<=-GOAL_WIDTH+0.1): #position is good, but angle is bad: TURN!!
                             wheel_velos = self.motors[id].spin_to_theta(th, self.cal.d2r(-90))
+                            self.cur_actions[id] = 4
                         else: # position is bad
                             wheel_velos = self.motors[id].move_to_target(my_posture, [min(wait_x,bx),-GOAL_WIDTH+0.1], damping=0)
+                            self.cur_actions[id] = 5
                     else:
                         cur_trans = self.data_proc.get_cur_ball_transition()
                         NUM_OF_PREDICTED_FRAMES = 1
                         target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
                                   cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
                         wheel_velos = self.motors[id].move_to_target(my_posture, target, damping=0.1)
+                        self.cur_actions[id] = 6
                 else: #outer side than ball
                     wheel_velos = self.motors[id].move_to_target(my_posture, target, damping=0)
+                    self.cur_actions[id] = 7
             # not contact with ball at wall yet
             else:
                 cur_trans = self.data_proc.get_cur_ball_transition()
@@ -658,6 +667,7 @@ class Strategy(object):
                 target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
                           cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
                 wheel_velos = self.motors[id].three_phase_move_to_target(my_posture, [wait_x,target[1],static_theta], damping=0.1)
+                self.cur_actions[id] = 8
                 #wheel_velos = self.motors[id].three_phase_move_to_target(my_posture, [wait_x,target[1],self.cal.d2r(180)], damping=0.1)
 
         # ball is coming
@@ -667,10 +677,12 @@ class Strategy(object):
             target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
                       cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
             wheel_velos = self.motors[id].move_to_target(my_posture, target, damping=0.2)
+            self.cur_actions[id] = 9
 
         # waiting
         else: 
             wheel_velos = self.motors[id].three_phase_move_to_target(my_posture, [wait_x, wait_y, static_theta])
+            self.cur_actions[id] = 10
 
-        return wheel_velos
+        return wheel_velos, self.cur_actions[id]
      
