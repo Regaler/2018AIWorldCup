@@ -702,10 +702,6 @@ class Component(ApplicationSession):
                 reward = 100
                 self.done = True
                 self.my_team_score += 1
-                self.update_target_model(0)
-                self.update_target_model(1)
-                self.update_target_model(2)
-                self.update_target_model(3)
                 printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
                 with open("./data/cumulative_reward.txt",'a') as ff:
                     ff.write(str(self.cumulative_reward) + "\n")
@@ -714,10 +710,6 @@ class Component(ApplicationSession):
                 reward = -100
                 self.done = True
                 self.opp_team_score += 1
-                self.update_target_model(0)
-                self.update_target_model(1)
-                self.update_target_model(2)
-                self.update_target_model(3)
                 printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
                 with open("./data/cumulative_reward.txt",'a') as ff:
                     ff.write(str(self.cumulative_reward) + "\n")
@@ -725,10 +717,6 @@ class Component(ApplicationSession):
             elif received_frame.reset_reason == DEADLOCK:
                 reward = 0
                 self.done = True
-                self.update_target_model(0)
-                self.update_target_model(1)
-                self.update_target_model(2)
-                self.update_target_model(3)
                 printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
                 with open("./data/cumulative_reward.txt",'a') as ff:
                     ff.write(str(self.cumulative_reward) + "\n")
@@ -754,6 +742,10 @@ class Component(ApplicationSession):
             if self.done == True or self.cnt > 300:
                 self.done = False
                 self.cnt  = 0
+                self.update_target_model(0)
+                self.update_target_model(1)
+                self.update_target_model(2)
+                self.update_target_model(3)
                 if len(self.memory3) >= self.batch_size:
                     if self.replay_cnt % 4 == 0:
                         self.replay(0, self.batch_size)
