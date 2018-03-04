@@ -11,6 +11,8 @@ ROBOT_SIZE = 0.075
 AXLE_LENGTH = 0.07
 WHEEL_RADIUS = 0.03
 
+ATTACK_MARGIN = 0.9
+DEFENSE_MARGIN = 0.1
 
 class Data_processor(object):
     def __init__(self, is_debug=False):

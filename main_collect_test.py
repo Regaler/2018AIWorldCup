@@ -11,7 +11,7 @@ import argparse
 import random
 
 from data_processor import *
-from strategy import *
+from strategy_v17 import *
 import math
 
 #reset_reason
@@ -29,6 +29,22 @@ X = 0
 Y = 1
 TH = 2
         
+COORDINATE = './data/test/COORDINATE.pkl'
+LABEL = './data/test/label.pkl'
+
+def add_to_pickle(path, item):
+    with open(path, 'ab') as file:
+        pickle.dump(item, file, pickle.HIGHEST_PROTOCOL)
+
+
+def read_from_pickle(path):
+    with open(path, 'rb') as file:
+        try:
+            while True:
+                yield pickle.load(file)
+        except EOFError:
+            pass
+
 class Frame(object):
     def __init__(self):
         self.time = None
@@ -142,9 +158,38 @@ class Component(ApplicationSession):
             ######################################
             # BEGIN ALGORITHM                    #
             ######################################
+            # <1> Get and calculate state
             self.data_proc.update_cur_frame(received_frame)
-            wheels = self.strategy.perform()
+            our_postures = np.array(self.data_proc.get_my_team_postures()).reshape(-1)
+            opponent_postures = np.array(self.data_proc.get_opponent_postures()).reshape(-1)
+            cur_ball = np.array(self.data_proc.get_cur_ball_position()).reshape(-1)
+            if len(self.prev_ball) > 0:
+                velocity = cur_ball - self.prev_ball
+            else:
+                velocity = np.array([0]*3).reshape(-1)
+            """
+            printWrapper("our_postures: " + str(our_postures))
+            printWrapper("prev_our_postures: " + str(self.prev_ball))
+            printWrapper("opponent_postures: " + str(opponent_postures))
+            printWrapper("cur_ball: " + str(cur_ball))
+            printWrapper("velocity: " + str(velocity))
+            """
+            coordinates = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
+
+            # <2> Perform and get actions
+            wheels = self.strategy.perform() # perform
+
+            # <3> Write some values for supervised learning
+            if self.cnt % 3 == 0:
+                add_to_pickle(coordinates, COORDINATE)
+                add_to_pickle(wheels, LABEL)
+            else:
+                pass
+
+            # <4>
+            self.cnt+=1
             set_wheel(self, wheels)
+            self.prev_ball = our_postures
             ######################################
             # END ALGORITHM                      #
             ######################################
