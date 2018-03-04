@@ -167,6 +167,7 @@ class Component(ApplicationSession):
                 velocity = cur_ball - self.prev_ball
             else:
                 velocity = np.array([0]*3).reshape(-1)
+            coordinates = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
             """
             printWrapper("our_postures: " + str(our_postures))
             printWrapper("prev_our_postures: " + str(self.prev_ball))
@@ -174,7 +175,6 @@ class Component(ApplicationSession):
             printWrapper("cur_ball: " + str(cur_ball))
             printWrapper("velocity: " + str(velocity))
             """
-            coordinates = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
 
             # <2> Perform and get actions
             wheels = self.strategy.perform() # perform
