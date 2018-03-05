@@ -11,8 +11,10 @@ import argparse
 import random
 
 from data_processor import *
-from strategy_v17 import *
+from strategy_v13 import *
 import math
+import numpy as np
+import pickle
 
 #reset_reason
 NONE = 0
@@ -60,7 +62,8 @@ class Component(ApplicationSession):
 
     def __init__(self, config):
         ApplicationSession.__init__(self, config)
-        
+        self.prev_ball = [0, 0]
+        self.cnt = 0
 
     def onConnect(self):
         print("Transport connected")
@@ -166,7 +169,8 @@ class Component(ApplicationSession):
             if len(self.prev_ball) > 0:
                 velocity = cur_ball - self.prev_ball
             else:
-                velocity = np.array([0]*3).reshape(-1)
+                velocity = np.array([0]*2).reshape(-1)
+            coordinates = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
             """
             printWrapper("our_postures: " + str(our_postures))
             printWrapper("prev_our_postures: " + str(self.prev_ball))
@@ -174,22 +178,21 @@ class Component(ApplicationSession):
             printWrapper("cur_ball: " + str(cur_ball))
             printWrapper("velocity: " + str(velocity))
             """
-            coordinates = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
 
             # <2> Perform and get actions
             wheels = self.strategy.perform() # perform
 
             # <3> Write some values for supervised learning
             if self.cnt % 3 == 0:
-                add_to_pickle(coordinates, COORDINATE)
-                add_to_pickle(wheels, LABEL)
+                add_to_pickle(COORDINATE, coordinates)
+                add_to_pickle(LABEL, wheels)
             else:
                 pass
 
             # <4>
             self.cnt+=1
             set_wheel(self, wheels)
-            self.prev_ball = our_postures
+            self.prev_ball = cur_ball
             ######################################
             # END ALGORITHM                      #
             ######################################

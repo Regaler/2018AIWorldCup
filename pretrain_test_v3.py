@@ -35,6 +35,19 @@ $python3 pretrain_test_v3.py --train
 $python3 pretrain_test_v3.py --test
 """
 
+def read_from_pickle(path):
+	mydata = []
+	with open(path, 'rb') as file:
+		try:
+			while True:
+				data = pickle.load(file)
+				if data == "":
+					return mydata
+				else:
+					mydata.append(data)
+		except EOFError:
+			return mydata
+
 # Neural network
 def buildmodel():
 	model = Sequential()
@@ -60,7 +73,7 @@ if __name__ == 	"__main__":
 		print("Error: No such flag. You can only input --train or --test")
 
 	LEARNING_RATE = 1e-5
-	state_size = 40
+	state_size = 34
 	label_size = 10
 	batch_size = 32
 	num_of_data = 0
@@ -74,13 +87,26 @@ if __name__ == 	"__main__":
 	model.load_weights("./save/weights_FC_ddpg.h5")
 
 	# <2> Restore data and label
-	with open(STATE,'rb') as f, open(LABEL,'rb') as g:
-		states = pickle.load(f)
-		labels = pickle.load(g)
-	states = states[2:]
-	labels = labels[2:]
-	num_of_data = len(labels)
+	labels = read_from_pickle(LABEL)
+	states = read_from_pickle(STATE)
+	num_of_data = len(states)
 
+	X = np.zeros((batch_size, state_size))
+	Y = np.zeros((batch_size, label_size))
+	cnt_batch = 0
+
+	# Make batch
+	for cnt_batch in range(batch_size):
+		i = int(num_of_data*random.random())
+		X[cnt_batch] = np.array(states[i])
+		Y[cnt_batch] = np.array(labels[i])
+
+	# Predict and calculate loss
+	Y_predict = model.predict(X)
+	loss = ((Y_predict - Y) ** 2).mean()
+	print("The loss: " + str(loss))
+
+	"""
 	# <3> Run 5 times for no reason
 	for epoch in range(100):
 		cnt = 0
@@ -107,3 +133,4 @@ if __name__ == 	"__main__":
 
 	loss /= 100
 	print("\naverage loss : " + str(loss))
+	"""

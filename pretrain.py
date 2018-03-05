@@ -39,9 +39,22 @@ def buildmodel():
 	model.add(Dense(128, activation = 'relu'))
 	model.add(Dense(128, activation = 'relu'))
 	model.add(Dropout(0.5))
-	model.add(Dense(label_size, activation = 'softmax', kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+	model.add(Dense(label_size, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
 	model.compile(loss='mse', optimizer = Adam(lr=LEARNING_RATE))
 	return model
+
+def read_from_pickle(path):
+	mydata = []
+	with open(path, 'rb') as file:
+		try:
+			while True:
+				data = pickle.load(file)
+				if data == "":
+					return mydata
+				else:
+					mydata.append(data)
+		except EOFError:
+			return mydata
 
 if __name__ == '__main__':
 
@@ -59,10 +72,9 @@ if __name__ == '__main__':
 	states = []
 
 	# Restore data and label
-	with open(LABEL,'rb') as g, open(COORDINATION,'rb') as h:
-		labels = pickle.load(g)[1:]
-		states = pickle.load(h)[1:]
-		num_of_data = len(states)
+	labels = read_from_pickle(LABEL)
+	states = read_from_pickle(COORDINATION)
+	num_of_data = len(states)
 
 	# make neural net
 	model = buildmodel()
