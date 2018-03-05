@@ -247,9 +247,9 @@ class Component(ApplicationSession):
         self.memory2 = deque(maxlen=2000)
         self.memory3 = deque(maxlen=2000)
 
-        self.epsilon = 0.5
+        self.epsilon = 0.01
         self.final_epsilon = 0.01 # Final epsilon value
-        self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
+        self.dec_epsilon = 0.01 # Decrease rate of epsilon for every generation
         self.gamma = 0.99 # 0.99
         self.batch_size = 32
         self.learning_rate = 1e-5
