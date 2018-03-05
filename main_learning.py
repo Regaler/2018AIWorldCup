@@ -178,38 +178,7 @@ def ActionNumInterpreter(id, strategy, y):
         return wheel_velos
     else:
         assert(False), "id2info: No such id"
-
-def ActionNumInterpreter3(strategy, y, id):
-    #printWrapper("Called ActionNumInterpreter")
-    our_posture = strategy.data_proc.get_my_team_postures()
-    my_posture = our_posture[id]
-    cur_ball = strategy.data_proc.get_cur_ball_position()
-    cur_trans = strategy.data_proc.get_cur_ball_transition()
-    theta_to_ball = strategy.cal.compute_theta_to_target(my_posture, cur_ball)
-    static_theta = strategy.cal.compute_static_theta(my_posture, cur_ball)
-    dist_to_ball = strategy.cal.get_distance(my_posture,cur_ball)
-
-    my_x = my_posture[0]
-    my_y = my_posture[1]
-    th = my_posture[2]
-    bx = cur_ball[0]
-    by = cur_ball[1]
-
-    backup_x = 1.5  
-    backup_y = GOAL_WIDTH-0.2
-
-    wait_x = -1.85
-    if (by >= GOAL_WIDTH-0.1):
-        wait_y = GOAL_WIDTH-0.1
-    elif (by <= -GOAL_WIDTH+0.1):
-        wait_y = -GOAL_WIDTH+0.1
-    else: 
-        wait_y = by
-
-    i = np.argmax(y)
-
-    
-
+ 
 def printWrapper(msg):
     print(msg)
     sys.__stdout__.flush() # stdout is redirected to somewhere else. flush __stdout__ directly.
@@ -284,7 +253,7 @@ class Component(ApplicationSession):
 
         self.replay_cnt = 0
         self.cnt = 0
-        self.state_size = 47
+        self.state_size = 34
         self.model0 = self.build_model(0)
         self.model0.load_weights("./save/weights_FC0.h5")
         self.model1 = self.build_model(1)
@@ -538,12 +507,8 @@ class Component(ApplicationSession):
             our_postures = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
             opponent_postures = np.array(self.strategy.data_proc.get_opponent_postures()).reshape(-1)
             cur_ball = np.array(self.strategy.data_proc.get_cur_ball_position()).reshape(-1)
-            if len(self.prev_our_postures) > 0:
-                velocity = our_postures - self.prev_our_postures
-            else:
-                velocity = np.array([0]*15).reshape(-1)
-            self.prev_our_postures = our_postures
-            x1 = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
+            transition = np.array(self.strategy.data_proc.get_cur_ball_transition()).reshape(-1)
+            x1 = np.concatenate((our_postures, opponent_postures, cur_ball, transition))
             x1 = np.reshape(x1, [1, self.state_size])
 
             # <DQL2> Get action number

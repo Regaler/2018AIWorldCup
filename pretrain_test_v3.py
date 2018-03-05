@@ -72,7 +72,7 @@ if __name__ == 	"__main__":
 		print("Error: No such robot. You should give 0, 1, 2, or 3")
 
 	LEARNING_RATE = 1e-5
-	state_size = 47
+	state_size = 34
 	batch_size = 32
 	num_of_data = 0
 	states = []

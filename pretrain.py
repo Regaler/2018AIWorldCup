@@ -63,7 +63,7 @@ if __name__ == '__main__':
 	COORDINATION = './data/train/COORDINATION' + str(flag) + '.pkl'
 	save_file = './save/weights_FC' + str(flag) + '.h5'
 	BATCH = 64
-	state_size = 47
+	state_size = 34
 	num_of_data = 0
 
 	labels = []

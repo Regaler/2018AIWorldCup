@@ -210,10 +210,7 @@ class Component(ApplicationSession):
             our_postures = np.array(self.data_proc.get_my_team_postures()).reshape(-1)
             opponent_postures = np.array(self.data_proc.get_opponent_postures()).reshape(-1)
             cur_ball = np.array(self.data_proc.get_cur_ball_position()).reshape(-1)
-            if len(self.prev_our_postures) > 0:
-                velocity = our_postures - self.prev_our_postures
-            else:
-                velocity = np.array([0]*10).reshape(-1)
+            transition = np.array(self.data_proc.get_cur_ball_transition()).reshape(-1)
             """
             printWrapper("our_postures: " + str(our_postures))
             printWrapper("prev_our_postures: " + str(self.prev_our_postures))
@@ -221,7 +218,7 @@ class Component(ApplicationSession):
             printWrapper("cur_ball: " + str(cur_ball))
             printWrapper("velocity: " + str(velocity))
             """
-            coordination = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
+            coordination = np.concatenate((our_postures, opponent_postures, cur_ball, transition))
 
             # <2> Perform and get actions
             wheels, cur_actions = self.strategy.perform() # perform
@@ -327,7 +324,6 @@ class Component(ApplicationSession):
             # <4>
             self.cnt+=1
             set_wheel(self, wheels)
-            self.prev_our_postures = our_postures
             ######################################
             # END ALGORITHM                      #
             ######################################
