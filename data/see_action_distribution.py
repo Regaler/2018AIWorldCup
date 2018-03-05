@@ -1,7 +1,13 @@
 import pickle
 import numpy as np
+import sys
 
-with open('./label0.pkl','rb') as f:
+if sys.argv[1] == '--train':
+    filename = './train/label.pkl'
+elif sys.argv[1] == '--test':
+    filename = './test/label.pkl'
+
+with open(filename,'rb') as f:
     mydata = pickle.load(f)
 
 #print(mydata)

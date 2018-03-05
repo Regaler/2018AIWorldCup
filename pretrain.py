@@ -51,7 +51,7 @@ if __name__ == '__main__':
 	COORDINATION = './data/train/COORDINATE.pkl'
 	save_file = './save/weights_FC_ddpg.h5'
 	BATCH = 64
-	state_size = 40
+	state_size = 34
 	label_size = 10
 	num_of_data = 0
 
