@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks
 
@@ -14,12 +13,12 @@ import pickle
 
 from calculator import *
 from data_processor import *
-from strategy_v17 import *
 from motor import *
 import math
 from PIL import Image
 import numpy as np
 from collections import deque
+import sys
 
 import os
 import base64
@@ -33,6 +32,18 @@ from keras.optimizers import SGD , Adam
 import tensorflow as tf
 from keras import losses
 import keras
+
+#< strategy list >
+#******************************************************************************#
+from strategy_v17 import *  #strategy_num == 0, RL
+from strategy import *      #strategy_num == 2
+from strategy_v13 import *  #strategy_num == 1
+#******************************************************************************#
+
+def printWrapper(msg):
+    print(msg)
+    sys.__stdout__.flush() # stdout is redirected to somewhere else. flush __stdout__ directly.
+
 
 #reset_reason
 NONE = 0
@@ -50,6 +61,8 @@ X = 0
 Y = 1
 TH = 2
 
+
+#******************************************************************************#
 def ActionNumInterpreter(id, strategy, y):
     our_posture = strategy.data_proc.get_my_team_postures()
     my_posture = our_posture[id]
@@ -290,41 +303,6 @@ def ActionNumInterpreter(id, strategy, y):
     else:
         assert(False), "id2info: No such id"
 
-def ActionNumInterpreter3(strategy, y, id):
-    #printWrapper("Called ActionNumInterpreter")
-    our_posture = strategy.data_proc.get_my_team_postures()
-    my_posture = our_posture[id]
-    cur_ball = strategy.data_proc.get_cur_ball_position()
-    cur_trans = strategy.data_proc.get_cur_ball_transition()
-    theta_to_ball = strategy.cal.compute_theta_to_target(my_posture, cur_ball)
-    static_theta = strategy.cal.compute_static_theta(my_posture, cur_ball)
-    dist_to_ball = strategy.cal.get_distance(my_posture,cur_ball)
-
-    my_x = my_posture[0]
-    my_y = my_posture[1]
-    th = my_posture[2]
-    bx = cur_ball[0]
-    by = cur_ball[1]
-
-    backup_x = 1.5  
-    backup_y = GOAL_WIDTH-0.2
-
-    wait_x = -1.85
-    if (by >= GOAL_WIDTH-0.1):
-        wait_y = GOAL_WIDTH-0.1
-    elif (by <= -GOAL_WIDTH+0.1):
-        wait_y = -GOAL_WIDTH+0.1
-    else: 
-        wait_y = by
-
-    i = np.argmax(y)
-
-    
-
-def printWrapper(msg):
-    print(msg)
-    sys.__stdout__.flush() # stdout is redirected to somewhere else. flush __stdout__ directly.
-
 def hot_encode(mylist):
     result = []
     for i in range(4):
@@ -333,7 +311,7 @@ def hot_encode(mylist):
         temp = [int(x) for x in temp]
         result.append(list(temp))
     return result
-        
+
 class Received_Image(object):
     def __init__(self, resolution, colorChannels):
         #printWrapper("1111")
@@ -362,6 +340,8 @@ class SubImage(object):
         self.height = height
         self.b64 = b64
 
+#******************************************************************************#
+
 class Frame(object):
     def __init__(self):
         self.time = None
@@ -369,6 +349,7 @@ class Frame(object):
         self.reset_reason = None
         self.subimages = None
         self.coordinates = None
+
 
 class Component(ApplicationSession):
     """
@@ -410,11 +391,13 @@ class Component(ApplicationSession):
         self.cumulative_reward = 0
         self.my_team_score = 0
         self.opp_team_score = 0
+        
 
     def onConnect(self):
-        printWrapper("Transport connected")
+        print("Transport connected")
         self.join(self.config.realm)
 
+    #******************************************************************************#
     """Some methods"""
     def id2info(self, id):
         if id == 0:
@@ -522,11 +505,13 @@ class Component(ApplicationSession):
 
     def save(self, id, name):
         label_size, memory, model = self.id2info(id)
-        model.save_weights(name)
+        model.save_weights(name)    
+    #******************************************************************************#
+
 
     @inlineCallbacks
     def onJoin(self, details):
-        printWrapper("session attached")
+        print("session attached")
 
 ##############################################################################
         def init_variables(self, info):
@@ -537,13 +522,18 @@ class Component(ApplicationSession):
             # self.game_time = info['game_time']
             # self.field = info['field']
             self.max_linear_velocity = info['max_linear_velocity']
-            self.resolution = info['resolution']
-            self.image = Received_Image(self.resolution, self.colorChannels)
+            self.end_of_frame = False
+            #print("Initializing variables...")
             printWrapper("Initializing variables...")
             self.data_proc = Data_processor(is_debug=False)
-            self.strategy = Strategy(self.data_proc, is_debug=False)
+            
+
+
+            #<1> For RL
+            #*******************************************************************#
+            self.resolution = info['resolution']
+            self.image = Received_Image(self.resolution, self.colorChannels)
             self.path=['./data/robot0','./data/robot1','./data/robot2','./data/robot3']
-##################################################ADDDED PART
             self.motors = []
             self.motors.append(Motor('Motor 0', is_debug=False))
             self.motors.append(Motor('Motor 1', is_debug=False))
@@ -560,9 +550,19 @@ class Component(ApplicationSession):
 
             self.prev_our_postures = np.array([])
             self.prev_action0 = 0
+            #*******************************************************************#
 
-            #self.our_posture = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
-######################################################################################
+            #<2> Strategy
+            #*******************************************************************#
+            self.strategy_RL = Strategy_v17(self.data_proc, is_debug=False)  #strategy_num = 0, RL
+            self.strategy_1 = Strategy_v13(self.data_proc, is_debug=False)   #strategy_num = 1
+            self.strategy_2 = Strategy(self.data_proc, is_debug=False)       #strategy_num = 2
+
+            self.used_strategy_num = 3  # number of strategy which we will use
+            self.strategy_num = random.randrange(0,self.used_strategy_num)
+            self.strategy_point = [0] * self.used_strategy_num
+            self.goal_time = 0
+            #*******************************************************************#
             return
 ##############################################################################
             
@@ -590,7 +590,7 @@ class Component(ApplicationSession):
             
     @inlineCallbacks
     def on_event(self, f):        
-        #printWrapper("event received")
+        # print("event received")
 
         @inlineCallbacks
         def set_wheel(self, robot_wheels):
@@ -598,7 +598,6 @@ class Component(ApplicationSession):
             return
         
         # initiate empty frame
-        #printWrapper("Initiate emtpy frame")
         received_frame = Frame()
         received_subimages = []
         
@@ -624,60 +623,101 @@ class Component(ApplicationSession):
             self.end_of_frame = f['EOF']     
 
         if (self.end_of_frame):
-            #print("end of frame")
             self._frame += 1 
+
+
 
 ##############################################################################
             ######################################
             # BEGIN ALGORITHM                    #
             ######################################
             self.data_proc.update_cur_frame(received_frame)
-            # <DQL1> Get state, and preprocess
-            our_postures = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
-            opponent_postures = np.array(self.strategy.data_proc.get_opponent_postures()).reshape(-1)
-            cur_ball = np.array(self.strategy.data_proc.get_cur_ball_position()).reshape(-1)
-            if len(self.prev_our_postures) > 0:
-                velocity = our_postures - self.prev_our_postures
+
+            #<0> calculate score point
+            if received_frame.reset_reason == 2: #score my team
+                self.strategy_point[self.strategy_num] += (3/(received_frame.time - self.goal_time) + 0.5)
+                self.goal_time = received_frame.time
+            elif received_frame.reset_reason == 3: #score opponent
+                self.strategy_point[self.strategy_num] -= (3/(received_frame.time - self.goal_time) + 0.5)
+                self.goal_time = received_frame.time
             else:
-                velocity = np.array([0]*15).reshape(-1)
-            self.prev_our_postures = our_postures
-            x1 = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
-            x1 = np.reshape(x1, [1, self.state_size])
+                pass
+            printWrapper("strategy_point : " + str(self.strategy_point))
 
-            # <DQL2> Get action number
-            
-            a0 = self.act(0, x1)
-            act_values0 = [0]*12
-            act_values0[a0] = 1
-
-            a1 = self.act(1, x1)
-            act_values1 = [0]*14
-            act_values1[a1] = 1
-
-            a2 = self.act(2, x1)
-            act_values2 = [0]*13
-            act_values2[a2] = 1
-
-            a3 = self.act(3, x1)
-            act_values3 = [0]*17
-            act_values3[a3] = 1
+            #<1> select strategy   
+            if received_frame.time < 100:
+                if (received_frame.reset_reason == 2) or (received_frame.reset_reason == 3) or (received_frame.reset_reason == 5): # goal                    
+                    while 1:
+                        random_strategy = random.randrange(0,self.used_strategy_num)
+                        if not self.strategy_num == random_strategy:
+                            break
+                    self.strategy_num = random_strategy
+                else:
+                    pass
+                case = 1
+            else:
+                self.strategy_num = self.strategy_point.index(max(self.strategy_point))
+                case = 2
 
 
-            # <DQL3> Perform action and get next state, reward, done. 
+            #<2> strategy perform
+            if self.strategy_num == 0: # RL
+                printWrapper(str(case) + ". strategy_num : " + str(self.strategy_num) + " = RL, using strategy_v17")            
+                # <DQL1> Get state, and preprocess
+                our_postures = np.array(self.strategy_RL.data_proc.get_my_team_postures()).reshape(-1)
+                opponent_postures = np.array(self.strategy_RL.data_proc.get_opponent_postures()).reshape(-1)
+                cur_ball = np.array(self.strategy_RL.data_proc.get_cur_ball_position()).reshape(-1)
+                if len(self.prev_our_postures) > 0:
+                    velocity = our_postures - self.prev_our_postures
+                else:
+                    velocity = np.array([0]*15).reshape(-1)
+                self.prev_our_postures = our_postures
+                x1 = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
+                x1 = np.reshape(x1, [1, self.state_size])
 
-            # do some processing with data_proc
-            wheels, actions = self.strategy.perform()
-            wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
-            wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
-            wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
-            wheels[6], wheels[7] = ActionNumInterpreter(3, self.strategy, act_values3)
+                # <DQL2> Get action number
+                a0 = self.act(0, x1)
+                act_values0 = [0]*12
+                act_values0[a0] = 1
 
+                a1 = self.act(1, x1)
+                act_values1 = [0]*14
+                act_values1[a1] = 1
+
+                a2 = self.act(2, x1)
+                act_values2 = [0]*13
+                act_values2[a2] = 1
+
+                a3 = self.act(3, x1)
+                act_values3 = [0]*17
+                act_values3[a3] = 1
+
+                # <DQL3> Perform action and get next state, reward, done. 
+                # do some processing with data_proc
+                wheels, actions = self.strategy_RL.perform()
+                wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy_RL, act_values0)
+                wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy_RL, act_values1)
+                wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy_RL, act_values2)
+                wheels[6], wheels[7] = ActionNumInterpreter(3, self.strategy_RL, act_values3)
+            elif self.strategy_num == 1:
+                printWrapper(str(case) + ". strategy_num : " + str(self.strategy_num) + " = rulebased, using strategy_v13")
+                wheels = self.strategy_1.perform()
+            elif self.strategy_num == 2:
+                printWrapper(str(case) + ". strategy_num : " + str(self.strategy_num) + " = rulebased, using strategy")
+                wheels = self.strategy_2.perform()
+            else:
+                printWrapper("ERROR : There is no proper strategy")
+
+
+            #<3> set wheel
             set_wheel(self, wheels)
+
             ######################################
             # END ALGORITHM                      #
             ######################################
 ##############################################################################            
-          
+
+
             if(received_frame.reset_reason == GAME_END):
                 printWrapper("Game ended.")
 
@@ -695,6 +735,7 @@ class Component(ApplicationSession):
             
             self.end_of_frame = False
 
+
     def onDisconnect(self):
         printWrapper("disconnected")
         if reactor.running:
@@ -702,7 +743,7 @@ class Component(ApplicationSession):
 
 
 if __name__ == '__main__':
-    printWrapper("[MINUK] Start of Main")
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("server_ip")
     parser.add_argument("port")
@@ -721,7 +762,6 @@ if __name__ == '__main__':
     ai_sv = "rs://" + args.server_ip + ":" + args.port
     ai_realm = args.realm
     
-    printWrapper("[MINUK] Before making component")
     # create a Wamp session object
     session = Component(ComponentConfig(ai_realm, {}))
 
@@ -732,4 +772,3 @@ if __name__ == '__main__':
     runner = ApplicationRunner(ai_sv, ai_realm, serializers=[serializer])
     
     runner.run(session, auto_reconnect=True)
-

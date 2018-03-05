@@ -15,7 +15,7 @@ def printWrapper(msg):
     sys.__stdout__.flush() # stdout is redirected to somewhere else. flush __stdout__ directly.
 
 
-class Strategy(object):
+class Strategy_v17(object):
     def __init__(self, data_proc, is_debug=False, memory = []):
         self.cur_actions = [0,0,0,0]
         self.is_debug = is_debug
