@@ -46,13 +46,13 @@ if __name__ == '__main__':
 	# parse
 	flag = sys.argv[1]
 	if flag == '0':
-		label_size = 12
+		label_size = 5
 	elif flag == '1':
-		label_size = 14
+		label_size = 5
 	elif flag == '2':
-		label_size = 13
+		label_size = 5
 	elif flag == '3':
-		label_size = 17
+		label_size = 5
 	else:
 		print("Error: The argument must be one of 0, 1, 2, or 3")
 		exit()

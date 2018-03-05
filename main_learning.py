@@ -86,34 +86,19 @@ def ActionNumInterpreter(id, strategy, y):
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.05,tar_posture[1]-0.05,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
+        
         elif i == 1:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
-        elif i == 2:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
-        elif i == 3:
-            goal_pstn = [1.9, 0]
-            tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
-            tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
-        elif i == 4:
             wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
-        elif i == 5:
-            wheel_velos = [-1.5, -1.8]
-        elif i == 6:
-            wheel_velos = [-1.8, -1.5]
-        elif i == 7:
+        
+        elif i == 2:
             target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-        elif i == 8:
+        elif i == 3:
             NUM_OF_PREDICTED_FRAMES = 2
             target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
-        elif i == 9:
-            wheel_velos = strategy.motors[id].spin_to_theta(th,strategy.cal.d2r(-90))
-        elif i == 10:
+        elif i == 4:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.85, -GOAL_WIDTH-0.2, math.pi/2])
-        elif i == 11:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, GOAL_WIDTH+0.2, static_theta])
         else:
             pass    
         return wheel_velos
@@ -121,52 +106,22 @@ def ActionNumInterpreter(id, strategy, y):
         if i == 0:
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
-            tar_posture = [tar_posture[0]-0.05,tar_posture[1]+0.05,0]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
-
-        elif i == 1:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
-
-        elif i == 2:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
-
-        elif i == 3:
-            goal_pstn = [1.9, 0]
-            tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
 
-        elif i == 4:
+        elif i == 1:
              wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
 
-        elif i == 5:
-            wheel_velos = [-1.5, -1.8]
-
-        elif i == 6:
-            wheel_velos = [-1.8, -1.5]
-
-        elif i == 7:
+        elif i == 2:
             target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
 
-        elif i == 8:
+        elif i == 3:
             NUM_OF_PREDICTED_FRAMES = 2
             target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
 
-        elif i == 9:
-            wheel_velos = [1.8, 1.8]
-
-        elif i == 10:
-            wheel_velos = [0, 0]
-
-        elif i == 11:
-            wheel_velos = strategy.motors[id].spin_to_theta(th, strategy.cal.d2r(90))
-
-        elif i == 12:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.85, GOAL_WIDTH+0.2, math.pi/2])
-
-        elif i == 13:
+        elif i == 4:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, -GOAL_WIDTH-0.2, static_theta])
         else:
             pass
@@ -174,51 +129,24 @@ def ActionNumInterpreter(id, strategy, y):
         return wheel_velos
     elif id == 2: #------------------------------
         if i == 0:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
-
-        elif i == 1:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
-
-        elif i == 2:
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
 
-        elif i == 3:
-            wheel_velos = [-1.8, -1.5]
-
-        elif i == 4:
+        elif i == 1:
             target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
 
-        elif i == 5:
+        elif i == 2:
             NUM_OF_PREDICTED_FRAMES = 2
             target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
 
-        elif i == 6:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [wait_x-0.02, wait_y], damping=0)
-
-        elif i == 7:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.0, min(0.0, cur_ball[1]), static_theta])
-
-        elif i == 8:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.1)
-
-        elif i == 9:
-            NUM_OF_PREDICTED_FRAMES = 3
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-
-        elif i == 10:
-            wheel_velos = [-1.8, -1.8]
-
-        elif i == 11:
+        elif i == 3:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, -backup_y, 0])
 
-        elif i == 12:
+        elif i == 4:
             wheel_velos = strategy.motors[id].move_to_target(my_posture, [backup_x,0], damping=0)
         else:
             pass
@@ -226,64 +154,23 @@ def ActionNumInterpreter(id, strategy, y):
         return wheel_velos
     elif id == 3: #------------------------------
         if i == 0:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
-
-        elif i == 1:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
-
-        elif i == 2:
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
 
-        elif i == 3:
-            wheel_velos = [-1.5, -1.8]
-
-        elif i == 4:
-            wheel_velos = [-1.8, -1.5]
-
-        elif i == 5:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-
-        elif i == 6:
+        elif i == 1:
             NUM_OF_PREDICTED_FRAMES = 2
             target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
 
-        elif i == 7:
-            wheel_velos = strategy.motors[id].spin_to_theta(th, strategy.cal.d2r(90))
-
-        elif i == 8:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [wait_x-0.02, wait_y], damping=0)
-
-        elif i == 9:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,bx),by], damping=0)
-
-        elif i == 10:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [target[0]+0.2,target[1]-0.05], damping=0)
-
-        elif i == 11:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,target[0]-0.05),target[1]-0.05], damping=0)
-
-        elif i == 12:
+        elif i == 2:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.0, min(0.0, cur_ball[1]), static_theta])
 
-        elif i == 13:
-            NUM_OF_PREDICTED_FRAMES = 3
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-
-        elif i == 14:
-            wheel_velos = [-1.8, -1.8]
-
-        elif i == 15:
+        elif i == 3:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, +backup_y, 0])
 
-        elif i == 16:
+        elif i == 4:
             wheel_velos = strategy.motors[id].move_to_target(my_posture, [backup_x,0], damping=0)
         else:
             pass
@@ -426,25 +313,25 @@ class Component(ApplicationSession):
     """Some methods"""
     def id2info(self, id):
         if id == 0:
-            return 12, self.memory0, self.model0, self.target_model0
+            return 5, self.memory0, self.model0, self.target_model0
         elif id == 1:
-            return 14, self.memory1, self.model1, self.target_model1
+            return 5, self.memory1, self.model1, self.target_model1
         elif id == 2:
-            return 13, self.memory2, self.model2, self.target_model2
+            return 5, self.memory2, self.model2, self.target_model2
         elif id == 3:
-            return 17, self.memory3, self.model3, self.target_model3
+            return 5, self.memory3, self.model3, self.target_model3
         else:
             assert(False), "id2info: No such id"
 
     def build_model(self, id):
         if id == 0:
-            label_size = 12
+            label_size = 5
         elif id == 1:
-            label_size = 14
+            label_size = 5
         elif id == 2:
-            label_size = 13
+            label_size = 5
         elif id == 3:
-            label_size = 17
+            label_size = 5
         else:
             assert(False), 'wrong id'
 
@@ -662,19 +549,19 @@ class Component(ApplicationSession):
             # <DQL2> Get action number
             
             a0 = self.act(0, x1)
-            act_values0 = [0]*12
+            act_values0 = [0]*5
             act_values0[a0] = 1
 
             a1 = self.act(1, x1)
-            act_values1 = [0]*14
+            act_values1 = [0]*5
             act_values1[a1] = 1
 
             a2 = self.act(2, x1)
-            act_values2 = [0]*13
+            act_values2 = [0]*5
             act_values2[a2] = 1
 
             a3 = self.act(3, x1)
-            act_values3 = [0]*17
+            act_values3 = [0]*5
             act_values3[a3] = 1
 
 
@@ -781,7 +668,7 @@ class Component(ApplicationSession):
                 self.save(3, "./save/dqn3.h5")
 
             # Save score values
-            if self.losscounter % 5000 == 0:
+            if self.losscounter % 3000 == 0:
                 with open('./data/scores.txt','a') as ff:
                     ff.write(str(self.my_team_score) + ", " + str(self.opp_team_score) + "\n")
             ######################################

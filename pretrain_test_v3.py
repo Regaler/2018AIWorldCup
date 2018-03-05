@@ -61,13 +61,13 @@ if __name__ == 	"__main__":
 		print("Error: No such flag. You can only input --train or --test")
 
 	if num_flag == '0':
-		label_size = 12
+		label_size = 5
 	elif num_flag == '1':
-		label_size = 14
+		label_size = 5
 	elif num_flag == '2':
-		label_size = 13
+		label_size = 5
 	elif num_flag == '3':
-		label_size = 17
+		label_size = 5
 	else:
 		print("Error: No such robot. You should give 0, 1, 2, or 3")
 
