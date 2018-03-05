@@ -80,102 +80,215 @@ def ActionNumInterpreter(id, strategy, y):
     else: 
         wait_y = by
 
+    cur_trans = strategy.data_proc.get_cur_ball_transition()
+    NUM_OF_PREDICTED_FRAMES = 1
+    target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+              cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+
     i = np.argmax(y)
 
     if id == 0: #------------------------------
         if i == 0:
+            cur_trans = [0,0] 
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.05,tar_posture[1]-0.05,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
         
         elif i == 1:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
         
         elif i == 2:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
         elif i == 3:
-            NUM_OF_PREDICTED_FRAMES = 2
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            goal_pstn = [1.9, 0]
+            tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
+            tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
         elif i == 4:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
+        elif i == 5:
+            wheel_velos = [-1.5, -1.8]
+        elif i == 6:
+            wheel_velos = [-1.8, -1.5]
+        elif i == 7:
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+        elif i == 8:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 2
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            static_theta2 = strategy.cal.compute_static_theta(my_posture, target)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
+        elif i == 9:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, -GOAL_WIDTH-0.2, static_theta])
+        elif i == 10:
+            wheel_velos = strategy.motors[id].spin_to_theta(th,strategy.cal.d2r(-90))
+        elif i == 11:
             wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.85, -GOAL_WIDTH-0.2, math.pi/2])
         else:
-            pass    
+            with open("robot0_action_error.txt",'a') as ff:
+                ff.write("robot0 crazy\n")
         return wheel_velos
     elif id == 1: #------------------------------
         if i == 0:
             goal_pstn = [1.9, 0]
+            cur_trans = [0,0] 
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
-            tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
+            tar_posture = [tar_posture[0]-0.05,tar_posture[1]+0.05,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
-
+        
         elif i == 1:
-             wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
-
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
+        
         elif i == 2:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
         elif i == 3:
-            NUM_OF_PREDICTED_FRAMES = 2
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
-
-        elif i == 4:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, -GOAL_WIDTH-0.2, static_theta])
-        else:
-            pass
-        #printWrapper("Exit ActionNumInterpreter")
-        return wheel_velos
-    elif id == 2: #------------------------------
-        if i == 0:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
-
-        elif i == 1:
-            target = [cur_ball[0] + cur_trans[0], cur_ball[1] + cur_trans[1]]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
-
-        elif i == 2:
-            NUM_OF_PREDICTED_FRAMES = 2
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
-
-        elif i == 3:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, -backup_y, 0])
-
         elif i == 4:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [backup_x,0], damping=0)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, cur_ball, damping=0)
+        elif i == 5:
+            wheel_velos = [-1.5, -1.8]
+        elif i == 6:
+            wheel_velos = [-1.8, -1.5]
+        elif i == 7:
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+        elif i == 8:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 2
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            static_theta2 = strategy.cal.compute_static_theta(my_posture, target)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
+        elif i == 9:
+            wheel_velos = [1.8, 1.8]
+        elif i == 10:
+            wheel_velos = [0, 0]
+        elif i == 11:
+            wheel_velos = strategy.motors[id].spin_to_theta(th,strategy.cal.d2r(90))
+        elif i == 12:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.85, GOAL_WIDTH+0.2, math.pi/2])
         else:
-            pass
+            with open("robot1_action_error.txt",'a') as ff:
+                ff.write("robot1 crazy\n")
+        #printWrapper("Exit ActionNumInterpreter")
+        with open("robot1_debug.txt",'a') as ff:
+            ff.write("robot1's action: " + str(id) + '\n')
+        return wheel_velos
+    elif id == 2: #------------------------------
+        if i == 0:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
+        
+        elif i == 1:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
+        
+        elif i == 2:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            goal_pstn = [1.9, 0]
+            tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
+            tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
+        elif i == 3:
+            wheel_velos = [-1.8, -1.5]
+        elif i == 4:
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+        elif i == 5:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 2
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            static_theta2 = strategy.cal.compute_static_theta(my_posture, target)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
+        elif i == 6:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, GOAL_WIDTH+0.2, static_theta])
+        elif i == 7:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,target[0]-0.05),target[1]-0.05], damping=0)
+        elif i == 8:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,target[0]-0.05),target[1]+0.05], damping=0)
+        elif i == 9:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.1)
+        elif i == 10:
+            NUM_OF_PREDICTED_FRAMES = 3
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+            cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+        elif i == 11:
+            wheel_velos = [-1.8, -1.8]
+        elif i == 12:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, +backup_y, 0])
+        else:
+            with open("robot2_action_error.txt",'a') as ff:
+                ff.write("robot2 crazy\n")
         #printWrapper("Exit ActionNumInterpreter")
         return wheel_velos
     elif id == 3: #------------------------------
         if i == 0:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y-1])
+        
+        elif i == 1:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [my_x,my_y+1])
+        
+        elif i == 2:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
             goal_pstn = [1.9, 0]
             tar_posture = strategy.cal.compute_desired_posture(cur_ball, cur_trans, goal_pstn)
             tar_posture = [tar_posture[0]-0.08,tar_posture[1]-0.08,0]
             wheel_velos = strategy.motors[id].move_to_target(my_posture, tar_posture, damping=0)
-
-        elif i == 1:
-            NUM_OF_PREDICTED_FRAMES = 2
-            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES, cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
-
-        elif i == 2:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.0, min(0.0, cur_ball[1]), static_theta])
-
         elif i == 3:
-            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, +backup_y, 0])
-
+            wheel_velos = [-1.5, -1.8]
         elif i == 4:
-            wheel_velos = strategy.motors[id].move_to_target(my_posture, [backup_x,0], damping=0)
+            wheel_velos = [-1.8, -1.5]
+        elif i == 5:
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.2)
+        elif i == 6:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 2 
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            static_theta2 = strategy.cal.compute_static_theta(my_posture, target)
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0)
+        elif i == 7:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [-1.2, GOAL_WIDTH+0.2, static_theta])
+        elif i == 8:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [target[0]+0.2,target[1]-0.05], damping=0)
+        elif i == 9:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,target[0]-0.05),target[1]-0.05], damping=0)
+        elif i == 10:
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, [min(wait_x,target[0]-0.05),target[1]+0.05], damping=0)
+        elif i == 11:
+            cur_trans = strategy.data_proc.get_cur_ball_transition()
+            NUM_OF_PREDICTED_FRAMES = 1
+            target = [cur_ball[0] + cur_trans[0]*NUM_OF_PREDICTED_FRAMES,
+                      cur_ball[1] + cur_trans[1]*NUM_OF_PREDICTED_FRAMES]
+            wheel_velos = strategy.motors[id].move_to_target(my_posture, target, damping=0.1)
+        elif i == 12:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, -backup_y, 0])
+        elif i == 13:
+            wheel_velos = strategy.motors[id].three_phase_move_to_target(my_posture, [backup_x, +backup_y, 0])
         else:
-            pass
+            with open("robot3_action_error.txt",'a') as ff:
+                ff.write("robot3 crazy\n")
         #printWrapper("Exit ActionNumInterpreter")
         return wheel_velos
     else:
@@ -247,34 +360,49 @@ class Component(ApplicationSession):
         self.memory2 = deque(maxlen=2000)
         self.memory3 = deque(maxlen=2000)
 
-        self.epsilon = 0.01
+        with open("./data/epsilon.txt",'r') as ff:
+            a=ff.readline()
+        b = a.split('\n')
+        #self.epsilon = float(b[0])
+        self.epsilon = 0.5
         self.final_epsilon = 0.01 # Final epsilon value
-        self.dec_epsilon = 0.01 # Decrease rate of epsilon for every generation
+        self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
         self.gamma = 0.99 # 0.99
         self.batch_size = 32
-        self.learning_rate = 1e-5
+        self.learning_rate = 1e-2 # 1e-5
 
         self.replay_cnt = 0
         self.cnt = 0
         self.state_size = 34
-        self.model0 = self.build_model(0)
+        self.model0 = self.build_model(0, 'reg')
         self.model0.load_weights("./save/dqn0.h5")
-        self.model1 = self.build_model(1)
+        self.model1 = self.build_model(1, 'reg')
         self.model1.load_weights("./save/dqn1.h5")
-        self.model2 = self.build_model(2)
+        self.model2 = self.build_model(2, 'reg')
         self.model2.load_weights("./save/dqn2.h5")
-        self.model3 = self.build_model(3)
+        self.model3 = self.build_model(3, 'reg')
         self.model3.load_weights("./save/dqn3.h5")
 
-        self.target_model0 = self.build_model(0)
-        self.target_model1 = self.build_model(1)
-        self.target_model2 = self.build_model(2)
-        self.target_model3 = self.build_model(3)
+        self.target_model0 = self.build_model(0, 'target')
+        self.target_model1 = self.build_model(1, 'target')
+        self.target_model2 = self.build_model(2, 'target')
+        self.target_model3 = self.build_model(3, 'target')
+
+        #self.target_model0.load_weights("./save/weights_FC0.h5")
+        #self.target_model1.load_weights("./save/weights_FC1.h5")
+        #self.target_model2.load_weights("./save/weights_FC2.h5")
+        #self.target_model3.load_weights("./save/weights_FC3.h5")
+
+
+
+
+        self.prev_action0 = 0
+        self.prev_action1 = 0
+        self.prev_action2 = 0
+        self.prev_action3 = 0
 
         self.done = False
-        self.losscounter = 0
-        self.average_loss=[]
-        self.cumulative_reward = 0
+        self.global_counter = 0
         self.my_team_score = 0
         self.opp_team_score = 0
 
@@ -285,25 +413,25 @@ class Component(ApplicationSession):
     """Some methods"""
     def id2info(self, id):
         if id == 0:
-            return 5, self.memory0, self.model0, self.target_model0
+            return 12, self.memory0, self.model0, self.target_model0
         elif id == 1:
-            return 5, self.memory1, self.model1, self.target_model1
+            return 13, self.memory1, self.model1, self.target_model1
         elif id == 2:
-            return 5, self.memory2, self.model2, self.target_model2
+            return 13, self.memory2, self.model2, self.target_model2
         elif id == 3:
-            return 5, self.memory3, self.model3, self.target_model3
+            return 14, self.memory3, self.model3, self.target_model3
         else:
             assert(False), "id2info: No such id"
 
-    def build_model(self, id):
+    def build_model(self, id, model_type):
         if id == 0:
-            label_size = 5
+            label_size = 12
         elif id == 1:
-            label_size = 5
+            label_size = 13
         elif id == 2:
-            label_size = 5
+            label_size = 13
         elif id == 3:
-            label_size = 5
+            label_size = 14
         else:
             assert(False), 'wrong id'
 
@@ -311,8 +439,19 @@ class Component(ApplicationSession):
         model.add(Dense(64, input_dim = self.state_size, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
-        model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
-        model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
+        #model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+        if model_type == 'target':
+            model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+            model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
+            #model.compile(loss='categorical_crossentropy', optimizer = Adam(lr=self.learning_rate))
+            printWrapper('build_target_model')
+        else:
+            model.add(Dense(label_size))
+            model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
+            printWrapper('build_model')
+
+        #model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
+        #model.compile(loss='categorical_crossentropy', optimizer = Adam(lr=self.learning_rate))
         return model
 
     def update_target_model(self, id):
@@ -321,8 +460,8 @@ class Component(ApplicationSession):
         model_weights = model.get_weights()
         target_weights = target_model.get_weights()
         printWrapper("update_target_model")
-        for i in range(label_size):
-            target_weights[i] = 0.90*model_weights[i] + (1 - 0.90)*target_weights[i]
+        for i in range(len(target_weights)):
+            target_weights[i] = 0.1 * model_weights[i] + (1 - 0.1)*target_weights[i]
         target_model.set_weights(target_weights)
 
     def remember(self, id, state_action_reward_triplet):
@@ -337,6 +476,7 @@ class Component(ApplicationSession):
             #printWrapper("in act function state shape: " + str(state.shape))
             #printWrapper("state: " + str(state))
             act_values = model.predict(state) # act_values is of the form: [[0,1,0,0,0,...,0]]
+            #printWrapper(act_values)
             return np.argmax(act_values[0])
 
     def replay(self, id,  batch_size):
@@ -388,9 +528,8 @@ class Component(ApplicationSession):
         loss = ((Y_pred - Y_true) ** 2).mean()
         printWrapper("loss: " + str(loss))
 
-        with open("./data/loss_value.txt",'a') as ff, open("./data/q_value.txt",'a') as hh:
+        with open("./data/loss_value_" + str(id) + ".txt",'a') as ff:
             ff.write(str(loss) + "\n")
-            hh.write(str(np.max(Y_pred[0])) + "\n")
 
     def load(self, id, name):
         label_size, memory, model, target_model = self.id2info(id)
@@ -412,13 +551,11 @@ class Component(ApplicationSession):
             #       {rating, name}, axle_length, resolution, ball_radius
             # self.game_time = info['game_time']
             # self.field = info['field']
-            self.max_linear_velocity = info['max_linear_velocity']
             self.resolution = info['resolution']
             self.image = Received_Image(self.resolution, self.colorChannels)
             printWrapper("Initializing variables...")
             self.data_proc = Data_processor(is_debug=False)
             self.strategy = Strategy(self.data_proc, is_debug=False)
-            self.path=['./data/robot0','./data/robot1','./data/robot2','./data/robot3']
 ##################################################ADDDED PART
             self.motors = []
             self.motors.append(Motor('Motor 0', is_debug=False))
@@ -435,10 +572,6 @@ class Component(ApplicationSession):
             self.start = 0
 
             self.prev_our_postures = np.array([])
-            self.prev_action0 = 0
-            self.prev_action1 = 0
-            self.prev_action2 = 0
-            self.prev_action3 = 0
             self.frame_error_valid = []
 
             #self.our_posture = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
@@ -520,30 +653,75 @@ class Component(ApplicationSession):
             x1 = np.concatenate((our_postures, opponent_postures, cur_ball, transition))
             x1 = np.reshape(x1, [1, self.state_size])
 
+            # <Print Q>
+            x_0, y_0, x_1, y_1, x_2, y_2, x_3, y_3, x_4, y_4 = our_postures[0],our_postures[1],our_postures[3],our_postures[4],our_postures[6],our_postures[7],our_postures[9],our_postures[10],our_postures[12],our_postures[13]
+            if (self.global_counter > 100) and (abs(x_0 + 0.4) + abs(y_0 + 0.3) + abs(x_1 + 0.4) + abs(y_1 - 0.3) + abs(x_2 + 1.0) + abs(y_2 + 0.6) + abs(x_3 + 1.0) + abs(y_3 - 0.6) + abs(x_4 + 1.8) + abs(y_4 - 0)) < 0.1:
+                y_pred0 = self.model0.predict(x1)
+                y_pred1 = self.model1.predict(x1)
+                y_pred2 = self.model2.predict(x1)
+                y_pred3 = self.model3.predict(x1)
+                #a = model.predict(next_state)[0]
+                #t = target_model.predict(next_state)[0]
+                #target[0][action] = reward + self.gamma * t[np.argmax(a)] 
+                printWrapper(y_pred0)
+                #printWrapper()
+                printWrapper(np.sum(y_pred0))
+                with open("./data/q_value0.txt",'a') as hh:
+                    hh.write(str(np.max(y_pred0)) + "\n")
+                with open("./data/q_value1.txt",'a') as hh:
+                    hh.write(str(np.max(y_pred1)) + "\n")
+                with open("./data/q_value2.txt",'a') as hh:
+                    hh.write(str(np.max(y_pred2)) + "\n")
+                with open("./data/q_value3.txt",'a') as hh:
+                    hh.write(str(np.max(y_pred3)) + "\n")
             # <DQL2> Get action number
-            
+            #if (self.epsilon < 0.05) or (self.global_counter % 5 == 0):
             a0 = self.act(0, x1)
-            act_values0 = [0]*5
+            act_values0 = [0]*12
+            #printWrapper(a0)
             act_values0[a0] = 1
 
             a1 = self.act(1, x1)
-            act_values1 = [0]*5
+            act_values1 = [0]*13
             act_values1[a1] = 1
 
             a2 = self.act(2, x1)
-            act_values2 = [0]*5
+            act_values2 = [0]*13
             act_values2[a2] = 1
 
             a3 = self.act(3, x1)
-            act_values3 = [0]*5
+            act_values3 = [0]*14
             act_values3[a3] = 1
+
+            self.prev_action0 = a0
+            self.prev_action1 = a1
+            self.prev_action2 = a2
+            self.prev_action3 = a3
+            """
+            else:
+                a0 = self.prev_action0
+                a1 = self.prev_action1
+                a2 = self.prev_action2
+                a3 = self.prev_action3
+
+                act_values0 = [0]*12
+                act_values0[a0] = 1
+
+                act_values1 = [0]*13
+                act_values1[a1] = 1
+
+                act_values2 = [0]*13
+                act_values2[a2] = 1
+
+                act_values3 = [0]*14
+                act_values3[a3] = 1
+            """
 
 
             # <DQL3> Perform action and get next state, reward, done. 
 
             # do some processing with data_proc
             wheels, actions = self.strategy.perform()
-
             wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
             wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
             wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
@@ -563,16 +741,13 @@ class Component(ApplicationSession):
                 reward = 100
                 self.done = True
                 self.my_team_score += 1
-                self.cumulative_reward = 0
             elif received_frame.reset_reason == SCORE_OPPONENT:
                 reward = -100
                 self.done = True
                 self.opp_team_score += 1
-                self.cumulative_reward = 0
             elif received_frame.reset_reason == DEADLOCK:
                 reward = 0
                 self.done = True
-                self.cumulative_reward = 0
             else: # No reset, just go on
                 self.done = False
                 if cur_ball[0] < -1.5:
@@ -591,13 +766,12 @@ class Component(ApplicationSession):
                     reward = -0.2
                 else:
                     reward = 0
-                self.cumulative_reward += reward
             
             if not self.cnt == 0:
                 self.remember(0,[self.prev_state, self.prev_action0, reward])
-                self.remember(1,[self.prev_state, self.prev_action0, reward])
-                self.remember(2,[self.prev_state, self.prev_action0, reward])
-                self.remember(3,[self.prev_state, self.prev_action0, reward])
+                self.remember(1,[self.prev_state, self.prev_action1, reward])
+                self.remember(2,[self.prev_state, self.prev_action2, reward])
+                self.remember(3,[self.prev_state, self.prev_action3, reward])
 
             self.prev_state = x1
             self.prev_action0 = a0
@@ -629,26 +803,38 @@ class Component(ApplicationSession):
             else:
                 self.cnt += 1
 
-            self.losscounter += 1
+            self.global_counter += 1
 
             # Save weights
-            if self.losscounter % 10050 == 0 and self.losscounter > 1:
+            if self.global_counter % 10050 == 0 and self.global_counter > 1:
                 self.save(0, "./save/dqn0.h5")
-            elif self.losscounter % 10100 == 0 and self.losscounter > 1:
+            elif self.global_counter % 10100 == 0 and self.global_counter > 1:
                 self.save(1, "./save/dqn1.h5")
-            elif self.losscounter % 10150 == 0 and self.losscounter > 1:
+            elif self.global_counter % 10150 == 0 and self.global_counter > 1:
                 self.save(2, "./save/dqn2.h5")
-            elif self.losscounter % 10200 == 0 and self.losscounter > 1:
+            elif self.global_counter % 10200 == 0 and self.global_counter > 1:
                 self.save(3, "./save/dqn3.h5")
 
-            if self.losscounter % 70000 == 0 and self.losscounter > 1:
+            if self.global_counter % 300 == 0 and self.global_counter > 1:
+                self.write_loss(0, self.batch_size)
+            """
+            elif self.global_counter % 1007 == 0 and self.global_counter > 1:
+                self.write_loss(1, self.batch_size)
+            elif self.global_counter % 1012 == 0 and self.global_counter > 1:
+                self.write_loss(2, self.batch_size)
+            elif self.global_counter % 1017 == 0 and self.global_counter > 1:
+                self.write_loss(3, self.batch_size)
+            """
+            if self.global_counter % 70000 == 0 and self.global_counter > 1:
                 self.save(0, "./save/checkpoint/" + self.prefix + "_dqn0.h5")
                 self.save(1, "./save/checkpoint/" + self.prefix + "_dqn1.h5")
                 self.save(2, "./save/checkpoint/" + self.prefix + "_dqn2.h5")
                 self.save(3, "./save/checkpoint/" + self.prefix + "_dqn3.h5")
+                with open("./data/epsilon.txt",'w') as ff:
+                    ff.write(str(self.epsilon))
 
             # Save score values
-            if self.losscounter % 3000 == 0:
+            if self.global_counter % 3000 == 0:
                 with open('./data/scores.txt','a') as ff:
                     ff.write(str(self.my_team_score) + ", " + str(self.opp_team_score) + "\n")
             ######################################
