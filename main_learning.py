@@ -35,6 +35,8 @@ from keras.optimizers import SGD , Adam
 import tensorflow as tf
 from keras import losses
 import keras
+from time import gmtime, strftime
+
 
 #reset_reason
 NONE = 0
@@ -235,6 +237,7 @@ class Component(ApplicationSession):
 
     def __init__(self, config):
         ApplicationSession.__init__(self, config)
+        self.prefix = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         self.colorChannels = 3 # nf
         self.end_of_frame = False
         self._frame = 0
@@ -609,7 +612,7 @@ class Component(ApplicationSession):
                 self.update_target_model(0)
                 self.update_target_model(1)
                 self.update_target_model(2)
-                self.update_target_model(3)
+                self.update_target_model(3) 
                 if len(self.memory3) >= self.batch_size:
                     if self.replay_cnt % 4 == 0:
                         self.replay(0, self.batch_size)
@@ -637,6 +640,12 @@ class Component(ApplicationSession):
                 self.save(2, "./save/dqn2.h5")
             elif self.losscounter % 10200 == 0 and self.losscounter > 1:
                 self.save(3, "./save/dqn3.h5")
+
+            if self.losscounter % 70000 == 0 and self.losscounter > 1:
+                self.save(0, "./save/checkpoint/" + self.prefix + "_dqn0.h5")
+                self.save(1, "./save/checkpoint/" + self.prefix + "_dqn1.h5")
+                self.save(2, "./save/checkpoint/" + self.prefix + "_dqn2.h5")
+                self.save(3, "./save/checkpoint/" + self.prefix + "_dqn3.h5")
 
             # Save score values
             if self.losscounter % 3000 == 0:
