@@ -702,28 +702,34 @@ class Component(ApplicationSession):
                 reward = 100
                 self.done = True
                 self.my_team_score += 1
-                printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
-                with open("./data/cumulative_reward.txt",'a') as ff:
-                    ff.write(str(self.cumulative_reward) + "\n")
                 self.cumulative_reward = 0
             elif received_frame.reset_reason == SCORE_OPPONENT:
                 reward = -100
                 self.done = True
                 self.opp_team_score += 1
-                printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
-                with open("./data/cumulative_reward.txt",'a') as ff:
-                    ff.write(str(self.cumulative_reward) + "\n")
                 self.cumulative_reward = 0
             elif received_frame.reset_reason == DEADLOCK:
                 reward = 0
                 self.done = True
-                printWrapper("Cumulative Reward is: " + str(self.cumulative_reward))
-                with open("./data/cumulative_reward.txt",'a') as ff:
-                    ff.write(str(self.cumulative_reward) + "\n")
                 self.cumulative_reward = 0
             else: # No reset, just go on
                 self.done = False
-                reward = -1
+                if cur_ball[0] < -1.5:
+                    reward = -3
+                elif cur_ball[0] < -1.0:
+                    reward = -2.5
+                elif cur_ball[0] < -0.5:
+                    reward = -2.0
+                elif cur_ball[0] < 0:
+                    reward = -1.5
+                elif cur_ball[0] < 0.5:
+                    reward = -1.0
+                elif cur_ball[0] < 1.0:
+                    reward = -0.5
+                elif cur_ball[0] < 1.5:
+                    reward = -0.2
+                else:
+                    reward = 0
                 self.cumulative_reward += reward
             
             if not self.cnt == 0:
@@ -773,16 +779,6 @@ class Component(ApplicationSession):
                 self.save(2, "./save/dqn2.h5")
             elif self.losscounter % 10200 == 0 and self.losscounter > 1:
                 self.save(3, "./save/dqn3.h5")
-
-            # Save q values
-            if self.losscounter % 10025 == 0 and self.losscounter > 1:
-                self.write_loss(0, self.batch_size)
-            elif self.losscounter % 10075 == 0 and self.losscounter > 1:
-                self.write_loss(1, self.batch_size)
-            elif self.losscounter % 10125 == 0 and self.losscounter > 1:
-                self.write_loss(2, self.batch_size)
-            elif self.losscounter % 10175 == 0 and self.losscounter > 1:
-                self.write_loss(3, self.batch_size)
 
             # Save score values
             if self.losscounter % 5000 == 0:
