@@ -314,7 +314,13 @@ class Component(ApplicationSession):
 
     def update_target_model(self, id):
         label_size, memory, model, target_model = self.id2info(id)
-        target_model.set_weights(model.get_weights())
+        #target_model.set_weights(model.get_weights())
+        model_weights = model.get_weights()
+        target_weights = target_model.get_weights()
+        printWrapper("update_target_model")
+        for i in range(label_size):
+            target_weights[i] = 0.90*model_weights[i] + (1 - 0.90)*target_weights[i]
+        target_model.set_weights(target_weights)
 
     def remember(self, id, state_action_reward_triplet):
         label_size, memory, model, target_model = self.id2info(id)
