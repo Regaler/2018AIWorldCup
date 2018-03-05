@@ -258,13 +258,13 @@ class Component(ApplicationSession):
         self.cnt = 0
         self.state_size = 34
         self.model0 = self.build_model(0)
-        self.model0.load_weights("./save/weights_FC0.h5")
+        self.model0.load_weights("./save/dqn0.h5")
         self.model1 = self.build_model(1)
-        self.model1.load_weights("./save/weights_FC1.h5")
+        self.model1.load_weights("./save/dqn1.h5")
         self.model2 = self.build_model(2)
-        self.model2.load_weights("./save/weights_FC2.h5")
+        self.model2.load_weights("./save/dqn2.h5")
         self.model3 = self.build_model(3)
-        self.model3.load_weights("./save/weights_FC3.h5")
+        self.model3.load_weights("./save/dqn3.h5")
 
         self.target_model0 = self.build_model(0)
         self.target_model1 = self.build_model(1)
