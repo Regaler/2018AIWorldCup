@@ -363,8 +363,10 @@ class Component(ApplicationSession):
         with open("./data/epsilon.txt",'r') as ff:
             a=ff.readline()
         b = a.split('\n')
-        #self.epsilon = float(b[0])
-        self.epsilon = 0.5
+        base_dir = './data/models_weights'
+        #os.path.join('./data/models_weights')
+        self.epsilon = float(b[0])
+        #self.epsilon = 0.1
         self.final_epsilon = 0.01 # Final epsilon value
         self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
         self.gamma = 0.99 # 0.99
@@ -374,19 +376,27 @@ class Component(ApplicationSession):
         self.replay_cnt = 0
         self.cnt = 0
         self.state_size = 34
-        self.model0 = self.build_model(0, 'reg')
-        self.model0.load_weights("./save/dqn0.h5")
-        self.model1 = self.build_model(1, 'reg')
-        self.model1.load_weights("./save/dqn1.h5")
-        self.model2 = self.build_model(2, 'reg')
-        self.model2.load_weights("./save/dqn2.h5")
-        self.model3 = self.build_model(3, 'reg')
-        self.model3.load_weights("./save/dqn3.h5")
 
-        self.target_model0 = self.build_model(0, 'target')
-        self.target_model1 = self.build_model(1, 'target')
-        self.target_model2 = self.build_model(2, 'target')
-        self.target_model3 = self.build_model(3, 'target')
+        self.model0_path = os.path.join(base_dir, 'models', 'model0.h5')
+        self.model1_path = os.path.join(base_dir, 'models', 'model1.h5')
+        self.model2_path = os.path.join(base_dir, 'models', 'model2.h5')
+        self.model3_path = os.path.join(base_dir, 'models', 'model3.h5')
+
+        self.target_model0_path = os.path.join(base_dir, 'target_models', 'target_model0.h5')
+        self.target_model1_path = os.path.join(base_dir, 'target_models', 'target_model1.h5')
+        self.target_model2_path = os.path.join(base_dir, 'target_models', 'target_model2.h5')
+        self.target_model3_path = os.path.join(base_dir, 'target_models', 'target_model3.h5')
+
+
+        self.model0 = self.build_model(0, 'reg', self.model0_path)
+        self.model1 = self.build_model(1, 'reg', self.model1_path)
+        self.model2 = self.build_model(2, 'reg', self.model2_path)
+        self.model3 = self.build_model(3, 'reg', self.model3_path)
+
+        self.target_model0 = self.build_model(0, 'target', self.target_model0_path)
+        self.target_model1 = self.build_model(1, 'target', self.target_model1_path)
+        self.target_model2 = self.build_model(2, 'target', self.target_model2_path)
+        self.target_model3 = self.build_model(3, 'target', self.target_model3_path)
 
         #self.target_model0.load_weights("./save/weights_FC0.h5")
         #self.target_model1.load_weights("./save/weights_FC1.h5")
@@ -423,7 +433,7 @@ class Component(ApplicationSession):
         else:
             assert(False), "id2info: No such id"
 
-    def build_model(self, id, model_type):
+    def build_model(self, id, model_type, weights_path = None):
         if id == 0:
             label_size = 12
         elif id == 1:
@@ -436,7 +446,7 @@ class Component(ApplicationSession):
             assert(False), 'wrong id'
 
         model = Sequential()
-        model.add(Dense(64, input_dim = self.state_size, activation = 'relu'))
+        model.add(Dense(128, input_dim = self.state_size, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
         #model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
@@ -449,6 +459,9 @@ class Component(ApplicationSession):
             model.add(Dense(label_size))
             model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
             printWrapper('build_model')
+        if os.path.exists(weights_path):
+            printWrapper('Weights loaded: id: {}'.format(id))
+            model.load_weights(weights_path)
 
         #model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
         #model.compile(loss='categorical_crossentropy', optimizer = Adam(lr=self.learning_rate))
@@ -535,9 +548,10 @@ class Component(ApplicationSession):
         label_size, memory, model, target_model = self.id2info(id)
         model.load_weights(name)
 
-    def save(self, id, name):
+    def save(self, id, model_name, target_model_name):
         label_size, memory, model, target_model = self.id2info(id)
-        model.save_weights(name)
+        model.save_weights(model_name)
+        target_model.save_weights(target_model_name)
 
     @inlineCallbacks
     def onJoin(self, details):
@@ -807,13 +821,13 @@ class Component(ApplicationSession):
 
             # Save weights
             if self.global_counter % 10050 == 0 and self.global_counter > 1:
-                self.save(0, "./save/dqn0.h5")
+                self.save(0, self.model0_path, self.target_model0_path)
             elif self.global_counter % 10100 == 0 and self.global_counter > 1:
-                self.save(1, "./save/dqn1.h5")
+                self.save(1, self.model1_path, self.target_model1_path)
             elif self.global_counter % 10150 == 0 and self.global_counter > 1:
-                self.save(2, "./save/dqn2.h5")
+                self.save(2, self.model2_path, self.target_model2_path)
             elif self.global_counter % 10200 == 0 and self.global_counter > 1:
-                self.save(3, "./save/dqn3.h5")
+                self.save(3, self.model3_path, self.target_model3_path)
 
             if self.global_counter % 300 == 0 and self.global_counter > 1:
                 self.write_loss(0, self.batch_size)
@@ -825,6 +839,7 @@ class Component(ApplicationSession):
             elif self.global_counter % 1017 == 0 and self.global_counter > 1:
                 self.write_loss(3, self.batch_size)
             """
+            """
             if self.global_counter % 70000 == 0 and self.global_counter > 1:
                 self.save(0, "./save/checkpoint/" + self.prefix + "_dqn0.h5")
                 self.save(1, "./save/checkpoint/" + self.prefix + "_dqn1.h5")
@@ -832,7 +847,7 @@ class Component(ApplicationSession):
                 self.save(3, "./save/checkpoint/" + self.prefix + "_dqn3.h5")
                 with open("./data/epsilon.txt",'w') as ff:
                     ff.write(str(self.epsilon))
-
+            """
             # Save score values
             if self.global_counter % 3000 == 0:
                 with open('./data/scores.txt','a') as ff:
