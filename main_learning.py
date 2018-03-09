@@ -23,6 +23,7 @@ from collections import deque
 
 import os
 import base64
+import os.path
 
 import json
 #from keras import initializers
@@ -34,7 +35,15 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD , Adam
 import tensorflow as tf
 from keras import losses
+#from keras.backend.tensorflow_backend import set_session
 import keras
+<<<<<<< Updated upstream
+=======
+
+#config = tf.ConfigProto()
+#config.gpu_options.per_process_gpu_memory_fraction = 0.5
+#set_session(tf.Session(config=config))
+>>>>>>> Stashed changes
 
 #reset_reason
 NONE = 0
@@ -291,6 +300,7 @@ def ActionNumInterpreter(id, strategy, y):
         return wheel_velos
     else:
         assert(False), "id2info: No such id"
+<<<<<<< Updated upstream
 
 def ActionNumInterpreter3(strategy, y, id):
     #printWrapper("Called ActionNumInterpreter")
@@ -321,20 +331,13 @@ def ActionNumInterpreter3(strategy, y, id):
 
     i = np.argmax(y)
 
+=======
+>>>>>>> Stashed changes
     
 
 def printWrapper(msg):
     print(msg)
     sys.__stdout__.flush() # stdout is redirected to somewhere else. flush __stdout__ directly.
-
-def hot_encode(mylist):
-    result = []
-    for i in range(4):
-        temp = np.zeros(32)
-        temp[mylist[i]] += 1
-        temp = [int(x) for x in temp]
-        result.append(list(temp))
-    return result
         
 class Received_Image(object):
     def __init__(self, resolution, colorChannels):
@@ -383,11 +386,31 @@ class Component(ApplicationSession):
         self.end_of_frame = False
         self._frame = 0
 
-        self.memory0 = deque(maxlen=2000) # Replay Memory D
-        self.memory1 = deque(maxlen=2000)
-        self.memory2 = deque(maxlen=2000)
-        self.memory3 = deque(maxlen=2000)
+        if os.path.isfile('./data/memory0.pkl') == True:
+            with open('./data/memory0.pkl','rb') as ff:
+                self.memory0 = pickle.load(ff)
+        else:
+            self.memory0 = deque(maxlen=100000)
 
+        if os.path.isfile('./data/memory1.pkl') == True:
+            with open('./data/memory1.pkl','rb') as ff:
+                self.memory1 = pickle.load(ff)
+        else:
+            self.memory1 = deque(maxlen=100000)
+
+        if os.path.isfile('./data/memory2.pkl') == True:
+            with open('./data/memory2.pkl','rb') as ff:
+                self.memory2 = pickle.load(ff)
+        else:
+            self.memory2 = deque(maxlen=100000)
+
+        if os.path.isfile('./data/memory3.pkl') == True:
+            with open('./data/memory3.pkl','rb') as ff:
+                self.memory3 = pickle.load(ff)
+        else:
+            self.memory3 = deque(maxlen=100000)
+
+<<<<<<< Updated upstream
         self.epsilon = 0.5
         self.final_epsilon = 0.01 # Final epsilon value
         self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
@@ -405,6 +428,47 @@ class Component(ApplicationSession):
         self.model2.load_weights("./save/weights_FC2.h5")
         self.model3 = self.build_model(3)
         self.model3.load_weights("./save/weights_FC3.h5")
+=======
+        with open("./data/epsilon.txt",'r') as ff:
+            a = ff.readline()
+        b = a.split('\n')
+        self.epsilon = float(b[0])
+
+        self.final_epsilon = 0.01 # Final epsilon value
+        self.dec_epsilon = 0.001 # Decrease rate of epsilon for every generation
+        self.gamma = 0.99 # 0.99
+        self.batch_size = 64
+        self.learning_rate = 1e-4
+
+        self.cnt = 0
+        self.replay_cnt = 0
+        self.frame_valid_cnt = 0
+        self.state_size = 34
+
+        if os.path.isfile('./save/dqn0.h5') == True:
+            self.model0 = self.build_model(0)
+            self.model0.load_weights("./save/dqn0.h5")
+        else:
+            self.model0 = self.build_model(0)
+
+        if os.path.isfile('./save/dqn1.h5') == True:
+            self.model1 = self.build_model(1)
+            self.model1.load_weights("./save/dqn1.h5")
+        else:
+            self.model1 = self.build_model(1)
+
+        if os.path.isfile('./save/dqn2.h5') == True:
+            self.model2 = self.build_model(2)
+            self.model2.load_weights("./save/dqn2.h5")
+        else:
+            self.model2 = self.build_model(2)
+
+        if os.path.isfile('./save/dqn3.h5') == True:
+            self.model3 = self.build_model(3)
+            self.model3.load_weights("./save/dqn3.h5")
+        else:
+            self.model3 = self.build_model(3)
+>>>>>>> Stashed changes
 
         self.done = False
         self.losscounter = 0
@@ -412,6 +476,13 @@ class Component(ApplicationSession):
         self.cumulative_reward = 0
         self.my_team_score = 0
         self.opp_team_score = 0
+
+        self.prev_action0 = -1
+        self.prev_action1 = -1
+        self.prev_action2 = -1
+        self.prev_action3 = -1
+
+        self.frame_error_valid = []
 
     def onConnect(self):
         printWrapper("Transport connected")
@@ -422,11 +493,19 @@ class Component(ApplicationSession):
         if id == 0:
             return 12, self.memory0, self.model0
         elif id == 1:
+<<<<<<< Updated upstream
             return 14, self.memory1, self.model1
         elif id == 2:
             return 13, self.memory2, self.model2
         elif id == 3:
             return 17, self.memory3, self.model3
+=======
+            return 13, self.memory1, self.model1
+        elif id == 2:
+            return 13, self.memory2, self.model2
+        elif id == 3:
+            return 14, self.memory3, self.model3
+>>>>>>> Stashed changes
         else:
             assert(False), "id2info: No such id"
 
@@ -446,7 +525,11 @@ class Component(ApplicationSession):
         model.add(Dense(64, input_dim = self.state_size, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
+<<<<<<< Updated upstream
         model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+=======
+        model.add(Dense(label_size))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+>>>>>>> Stashed changes
         model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
         return model
 
@@ -468,6 +551,7 @@ class Component(ApplicationSession):
         printWrapper("entered replay")
         label_size, memory, model = self.id2info(id)
         #state_set = np.zeros((batch_size,self.img_rows,self.img_cols,3))
+<<<<<<< Updated upstream
         state_set = np.zeros((batch_size, self.state_size))
         target_f_set=np.zeros((batch_size,label_size))
         # make batch
@@ -493,8 +577,10 @@ class Component(ApplicationSession):
     def write_loss(self, id, batch_size):
         label_size, memory, model = self.id2info(id)
 
+=======
+>>>>>>> Stashed changes
         state_set = np.zeros((batch_size, self.state_size))
-        target_f_set = np.zeros((batch_size, label_size))
+        target_f_set=np.zeros((batch_size,label_size))
         # make batch
         for i in range(batch_size-1):
             index = np.random.randint(len(memory)-1)
@@ -502,6 +588,7 @@ class Component(ApplicationSession):
             action = memory[index][1]
             reward = memory[index][2]
             next_state = memory[index+1][0]
+            # size cast
 
             target = reward + self.gamma * np.amax(model.predict(next_state)[0])
             target_f = model.predict(state)
@@ -509,8 +596,22 @@ class Component(ApplicationSession):
             target_f[0][action] = target
             target_f_set[i] = target_f
 
-        Y_pred = model.predict(state_set)
-        Y_true = target_f_set
+        model.fit(state_set, target_f_set, epochs=1, verbose=0)
+        self.epsilon = max(self.epsilon - self.dec_epsilon, self.final_epsilon)
+        printWrapper("Exit replay")
+
+
+    def write_loss(self, id, batch_size):
+        label_size, memory, model = self.id2info(id)
+
+        index = np.random.randint(len(memory)-1)
+        # index = len(memory)-2
+        state = memory[index][0]
+        action = memory[index][1]
+        reward = memory[index][2]
+        next_state = memory[index+1][0]
+        Y_pred = model.predict(state)
+        Y_true = reward + self.gamma * np.amax(model.predict(next_state)[0])
         loss = ((Y_pred - Y_true) ** 2).mean()
         printWrapper("loss: " + str(loss))
 
@@ -561,7 +662,12 @@ class Component(ApplicationSession):
             self.start = 0
 
             self.prev_our_postures = np.array([])
+<<<<<<< Updated upstream
             self.prev_action0 = 0
+=======
+
+            self.frame_error_valid = []
+>>>>>>> Stashed changes
 
             #self.our_posture = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
 ######################################################################################
@@ -638,6 +744,7 @@ class Component(ApplicationSession):
             our_postures = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
             opponent_postures = np.array(self.strategy.data_proc.get_opponent_postures()).reshape(-1)
             cur_ball = np.array(self.strategy.data_proc.get_cur_ball_position()).reshape(-1)
+<<<<<<< Updated upstream
             if len(self.prev_our_postures) > 0:
                 velocity = our_postures - self.prev_our_postures
             else:
@@ -654,14 +761,34 @@ class Component(ApplicationSession):
 
             a1 = self.act(1, x1)
             act_values1 = [0]*14
+=======
+            transition = np.array(self.strategy.data_proc.get_cur_ball_transition()).reshape(-1)*10
+            cur_state = np.concatenate((our_postures, opponent_postures, cur_ball, transition))
+            cur_state = np.reshape(cur_state, [1, self.state_size])
+            cur_state = cur_state.round(2)
+            #printWrapper(cur_state)
+
+            # <DQL2> Get action number
+            a0 = self.act(0, cur_state)
+            act_values0 = [0]*12
+            act_values0[a0] = 1
+
+            a1 = self.act(1, cur_state)
+            act_values1 = [0]*13
+>>>>>>> Stashed changes
             act_values1[a1] = 1
 
-            a2 = self.act(2, x1)
+            a2 = self.act(2, cur_state)
             act_values2 = [0]*13
             act_values2[a2] = 1
 
+<<<<<<< Updated upstream
             a3 = self.act(3, x1)
             act_values3 = [0]*17
+=======
+            a3 = self.act(3, cur_state)
+            act_values3 = [0]*14
+>>>>>>> Stashed changes
             act_values3[a3] = 1
 
 
@@ -669,6 +796,16 @@ class Component(ApplicationSession):
 
             # do some processing with data_proc
             wheels, actions = self.strategy.perform()
+<<<<<<< Updated upstream
+=======
+            if (actions[4] == 4) or (actions[4] == 2):
+                self.frame_error_valid.append(1)
+                if len(self.frame_error_valid) > 20:
+                    with open("frame_error.txt",'a') as tt:
+                        tt.write("frame error occured\n")
+            else:
+                self.frame_error_valid = []
+>>>>>>> Stashed changes
             wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
             wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
             wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
@@ -702,7 +839,26 @@ class Component(ApplicationSession):
                 self.cumulative_reward = 0
             else: # No reset, just go on
                 self.done = False
+<<<<<<< Updated upstream
                 reward = -1
+=======
+                if cur_ball[0] < -1.5:
+                    reward = -3
+                elif cur_ball[0] < -1.0:
+                    reward = -2.5
+                elif cur_ball[0] < -0.5:
+                    reward = -2.0
+                elif cur_ball[0] < 0:
+                    reward = -1.5
+                elif cur_ball[0] < 0.5:
+                    reward = -1.0
+                elif cur_ball[0] < 1.0:
+                    reward = -0.5
+                elif cur_ball[0] < 1.5:
+                    reward = -0.2
+                else:
+                    reward = 0
+>>>>>>> Stashed changes
                 self.cumulative_reward += reward
             
             if not self.cnt == 0:
@@ -711,7 +867,7 @@ class Component(ApplicationSession):
                 self.remember(2,[self.prev_state, self.prev_action0, reward])
                 self.remember(3,[self.prev_state, self.prev_action0, reward])
 
-            self.prev_state = x1
+            self.prev_state = cur_state
             self.prev_action0 = a0
             self.prev_action1 = a1
             self.prev_action2 = a2
@@ -722,17 +878,32 @@ class Component(ApplicationSession):
                 self.done = False
                 self.cnt  = 0
                 if len(self.memory3) >= self.batch_size:
+<<<<<<< Updated upstream
                     self.replay(0, self.batch_size)
                     self.replay(1, self.batch_size)
                     self.replay(2, self.batch_size)
                     self.replay(3, self.batch_size)
                     
+=======
+                    if self.replay_cnt % 4 == 0:
+                        self.replay(0, self.batch_size)
+                    elif self.replay_cnt % 4 == 1:
+                        self.replay(1, self.batch_size)
+                    elif self.replay_cnt % 4 == 2:
+                        self.replay(2, self.batch_size)
+                    elif self.replay_cnt % 4 == 3:
+                        self.replay(3, self.batch_size)
+                    else:
+                        printWrapper("something wrong in replay")
+                    self.replay_cnt += 1
+>>>>>>> Stashed changes
                 printWrapper("New Episode! New Epsilon: " + str(self.epsilon))
             else:
                 self.cnt += 1
 
             self.losscounter += 1
 
+<<<<<<< Updated upstream
             # Save weights
             if self.losscounter % 10000 == 0 and self.losscounter > 1:
                 self.save(0, "./save/dqn0.h5")
@@ -757,6 +928,43 @@ class Component(ApplicationSession):
             if self.losscounter % 10 == 0:
                 with open('./data/scores.txt','a') as ff:
                     ff.write(str(self.my_team_score) + ", " + str(self.opp_team_score) + "\n")
+=======
+            # <DQL6> Write important measures periodically
+            if len(self.frame_error_valid) < 20 :
+                # Save weights
+                if self.losscounter % 10050 == 0 and self.losscounter > 1:
+                    self.save(0, "./save/dqn0.h5")
+                elif self.losscounter % 10100 == 0 and self.losscounter > 1:
+                    self.save(1, "./save/dqn1.h5")
+                elif self.losscounter % 10150 == 0 and self.losscounter > 1:
+                    self.save(2, "./save/dqn2.h5")
+                elif self.losscounter % 10200 == 0 and self.losscounter > 1:
+                    self.save(3, "./save/dqn3.h5")
+
+                # Save q values
+                if self.losscounter % 10025 == 0 and self.losscounter > 1:
+                    self.write_loss(0, self.batch_size)
+                
+                # Save score values
+                if self.losscounter % 5000 == 0:
+                    with open('./data/scores.txt','a') as ff, open('./data/epsilon.txt','w') as hh:
+                        ff.write(str(self.my_team_score) + ", " + str(self.opp_team_score) + "\n")
+                        hh.write(str(self.epsilon))
+
+                # Save memory
+                if self.losscounter % 10052 == 0 and self.losscounter > 1:
+                    with open('./data/memory0.pkl','wb') as ff:
+                        pickle.dump(self.memory0, ff)
+                elif self.losscounter % 10102 == 0 and self.losscounter > 1:
+                    with open('./data/memory1.pkl','wb') as ff:
+                        pickle.dump(self.memory1, ff)
+                elif self.losscounter % 10152 == 0 and self.losscounter > 1:
+                    with open('./data/memory2.pkl','wb') as ff:
+                        pickle.dump(self.memory2, ff)
+                elif self.losscounter % 10202 == 0 and self.losscounter > 1:
+                    with open('./data/memory3.pkl','wb') as ff:
+                        pickle.dump(self.memory3, ff)
+>>>>>>> Stashed changes
             ######################################
             # END ALGORITHM                      #
             ######################################

@@ -396,15 +396,44 @@ class Component(ApplicationSession):
         self.learning_rate = 1e-5
 
         self.cnt = 0
-        self.state_size = 47
+        self.state_size = 34
+        
         self.model0 = self.build_model(0)
-        self.model0.load_weights("./save/weights_FC0.h5")
+        self.model0.load_weights("./save/dqn0.h5")
         self.model1 = self.build_model(1)
-        self.model1.load_weights("./save/weights_FC1.h5")
+        self.model1.load_weights("./save/dqn1.h5")
         self.model2 = self.build_model(2)
-        self.model2.load_weights("./save/weights_FC2.h5")
+        self.model2.load_weights("./save/dqn2.h5")
         self.model3 = self.build_model(3)
-        self.model3.load_weights("./save/weights_FC3.h5")
+        self.model3.load_weights("./save/dqn3.h5")
+        
+        """
+        try:
+            self.model0 = self.build_model(0)
+            self.model0.load_weights("./save/dqn0.h5")
+        except:
+            print("No such file ./save/dqn0.h5")
+        try:
+            self.model1 = self.build_model(1)
+            self.model1.load_weights("./save/dqn1.h5")
+        except:
+            print("No such file ./save/dqn0.h5")
+        try:
+            self.model2 = self.build_model(2)
+            self.model2.load_weights("./save/dqn2.h5")
+        except:
+            print("No such file ./save/dqn0.h5")
+        try:
+            self.model3 = self.build_model(3)
+            self.model3.load_weights("./save/dqn3.h5")
+        except:
+            print("No such file ./save/dqn0.h5")
+        try:
+            self.model4 = self.build_model(4)
+            self.model4.load_weights("./save/dqn4.h5")
+        except:
+            print("No such file ./save/dqn0.h5")
+        """
 
         self.done = False
         self.losscounter = 0
@@ -434,11 +463,11 @@ class Component(ApplicationSession):
         if id == 0:
             label_size = 12
         elif id == 1:
-            label_size = 14
+            label_size = 13
         elif id == 2:
             label_size = 13
         elif id == 3:
-            label_size = 17
+            label_size = 14
         else:
             assert(False), 'wrong id'
 
@@ -446,7 +475,7 @@ class Component(ApplicationSession):
         model.add(Dense(64, input_dim = self.state_size, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
         model.add(Dense(128, activation = 'relu'))
-        model.add(Dense(label_size, activation = 'softmax'))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
+        model.add(Dense(label_size))#, kernel_regularizer = regularizers.l2(0.01))) #activity_regularizer=regularizers.l1(0.01)))
         model.compile(loss='mse', optimizer = Adam(lr=self.learning_rate))
         return model
 
@@ -456,13 +485,8 @@ class Component(ApplicationSession):
 
     def act(self, id, state):
         label_size, memory, model = self.id2info(id)
-        if np.random.rand() <= self.epsilon:
-            return random.randrange(label_size)
-        else:
-            #printWrapper("in act function state shape: " + str(state.shape))
-            #printWrapper("state: " + str(state))
-            act_values = model.predict(state) # act_values is of the form: [[0,1,0,0,0,...,0]]
-            return np.argmax(act_values[0])
+        act_values = model.predict(state) # act_values is of the form: [[0,1,0,0,0,...,0]]
+        return np.argmax(act_values[0])
 
     def replay(self, id,  batch_size):
         printWrapper("entered replay")
@@ -638,30 +662,27 @@ class Component(ApplicationSession):
             our_postures = np.array(self.strategy.data_proc.get_my_team_postures()).reshape(-1)
             opponent_postures = np.array(self.strategy.data_proc.get_opponent_postures()).reshape(-1)
             cur_ball = np.array(self.strategy.data_proc.get_cur_ball_position()).reshape(-1)
-            if len(self.prev_our_postures) > 0:
-                velocity = our_postures - self.prev_our_postures
-            else:
-                velocity = np.array([0]*15).reshape(-1)
-            self.prev_our_postures = our_postures
-            x1 = np.concatenate((our_postures, opponent_postures, cur_ball, velocity))
-            x1 = np.reshape(x1, [1, self.state_size])
+            transition = np.array(self.strategy.data_proc.get_cur_ball_transition()).reshape(-1)*10
+            cur_state = np.concatenate((our_postures, opponent_postures, cur_ball, transition))
+            cur_state = np.reshape(cur_state, [1, self.state_size])
+            cur_state = cur_state.round(2)
+            #printWrapper(cur_state)
 
             # <DQL2> Get action number
-            
-            a0 = self.act(0, x1)
+            a0 = self.act(0, cur_state)
             act_values0 = [0]*12
             act_values0[a0] = 1
 
-            a1 = self.act(1, x1)
-            act_values1 = [0]*14
+            a1 = self.act(1, cur_state)
+            act_values1 = [0]*13
             act_values1[a1] = 1
 
-            a2 = self.act(2, x1)
+            a2 = self.act(2, cur_state)
             act_values2 = [0]*13
             act_values2[a2] = 1
 
-            a3 = self.act(3, x1)
-            act_values3 = [0]*17
+            a3 = self.act(3, cur_state)
+            act_values3 = [0]*14
             act_values3[a3] = 1
 
 
@@ -669,12 +690,24 @@ class Component(ApplicationSession):
 
             # do some processing with data_proc
             wheels, actions = self.strategy.perform()
+            if (actions[4] == 4) or (actions[4] == 2):
+                self.frame_error_valid.append(1)
+                if len(self.frame_error_valid) > 20:
+                    with open("frame_error.txt",'a') as tt:
+                        tt.write("frame error occured\n")
+            else:
+                self.frame_error_valid = []
             wheels[0], wheels[1] = ActionNumInterpreter(0, self.strategy, act_values0)
             wheels[2], wheels[3] = ActionNumInterpreter(1, self.strategy, act_values1)
             wheels[4], wheels[5] = ActionNumInterpreter(2, self.strategy, act_values2)
             wheels[6], wheels[7] = ActionNumInterpreter(3, self.strategy, act_values3)
-
             set_wheel(self, wheels)
+
+
+            if self.losscounter % 5000 == 0:
+                with open('./data/scores.txt','a') as ff:
+                    ff.write(str(self.my_team_score) + ", " + str(self.opp_team_score) + "\n")
+
             ######################################
             # END ALGORITHM                      #
             ######################################

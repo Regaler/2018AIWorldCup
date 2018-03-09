@@ -1,0 +1,15 @@
+Start epsilon=0.2 -> I think epsilon was too small since it didn't use pre-trained parameters.
+The 1hr pattern didn't disappear.
+Loss is weird, so I changed it to output only for robot 0, and not for batch.
+This version didn't even win against the rulebased code.
+q_value constantly goes down. This may be reasonable. However I may sample from the back for faster convergence.
+Cumulative reward didn't increase at all. 
+
+------
+Let's start from epsilon=1.0
+Let's start from random weights to see clearer progress
+Let's set infinite time to remove the 1hr pattern
+Let's see scores, cumulative reward, loss, and q_value
+Let's increase the memory size upto 30000
+Let's start from learning rate 1e-4
+Let's discretize state with rounding up to 2nd precision.
